@@ -1,0 +1,19 @@
+[
+{
+  "modid": "MCWaterCycle",
+  "name": "MC Water Cycle",
+  "description": "Makes water act realistically. Finite water. Acquifers. Rain. Evaporation.",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "url": "https://github.com/brezeeger/MCWaterCycle",
+  "updateUrl": "",
+  "authorList": ["brezeeger"],
+  "credits": "Forge and FML guys, Visual Studio developer dude",
+  "logoFile": "",
+  "screenshots": [ ],
+  "parent": "",
+  "requiredMods":  ["Forge"],
+  "dependencies": [ "mod_MinecraftForge", "Forge" ],
+  "useDependencyInformation": true
+}
+]

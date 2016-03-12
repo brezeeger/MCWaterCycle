@@ -1,0 +1,21 @@
+{
+    "variants": {
+        "normal": { "model": "MCWaterCycle:finiteWater" },
+        "level=0": { "model": "MCWaterCycle:finiteWater" },
+        "level=1": { "model": "MCWaterCycle:finiteWater" },
+        "level=2": { "model": "MCWaterCycle:finiteWater" },
+        "level=3": { "model": "MCWaterCycle:finiteWater" },
+        "level=4": { "model": "MCWaterCycle:finiteWater" },
+        "level=5": { "model": "MCWaterCycle:finiteWater" },
+        "level=6": { "model": "MCWaterCycle:finiteWater" },
+        "level=7": { "model": "MCWaterCycle:finiteWater" },
+        "level=8": { "model": "MCWaterCycle:finiteWater" },
+        "level=9": { "model": "MCWaterCycle:finiteWater" },
+        "level=10": { "model": "MCWaterCycle:finiteWater" },
+        "level=11": { "model": "MCWaterCycle:finiteWater" },
+        "level=12": { "model": "MCWaterCycle:finiteWater" },
+        "level=13": { "model": "MCWaterCycle:finiteWater" },
+        "level=14": { "model": "MCWaterCycle:finiteWater" },
+        "level=15":  { "model": "MCWaterCycle:finiteWater" }
+    }
+}

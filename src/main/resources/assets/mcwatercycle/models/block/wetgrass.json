@@ -1,0 +1,11 @@
+{
+    "parent": "block/cube",
+    "textures": {
+        "up": "MCWaterCycle:blocks/wetgrasstop",
+        "down": "MCWaterCycle:blocks/wetgrassbottom",
+        "north": "MCWaterCycle:blocks/wetgrassside",
+        "south": "MCWaterCycle:blocks/wetgrassside",
+        "east": "MCWaterCycle:blocks/wetgrassside",
+        "west": "MCWaterCycle:blocks/wetgrassside"
+    }
+}
