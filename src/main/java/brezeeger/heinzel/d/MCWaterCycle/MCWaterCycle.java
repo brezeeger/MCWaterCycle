@@ -65,8 +65,9 @@ public class MCWaterCycle /*extends DummyModContainer*/ {
 		WetSand = new WetBlock(Block.getBlockFromName("sand"), 4, 20, 3, "wetsand");
 		WetCobble = new WetBlock(Block.getBlockFromName("cobblestone"), 2, 20, 1, "wetcobblestone");
 		WetGravel = new WetBlock(Block.getBlockFromName("gravel"), 6, 20, 4, "wetgravel");	
-//		flfinwater = new Fluid("text");
-		flfinwater = new Fluid("finiteWater", new ResourceLocation("blocks/water_still"), new ResourceLocation("blocks/water_flow"));//.setBlock(Blocks.water);
+		flfinwater = new Fluid("finiteWater", new ResourceLocation("blocks/water_still"), new ResourceLocation("blocks/water_flow"));
+		//flfinwater = new Fluid("finiteWater", new ResourceLocation(MODID.toLowerCase()+":"+"blocks/finiteWater"),
+		// new ResourceLocation(MODID.toLowerCase()+":"+"blocks/finiteWater"));
 		finiteWater = new FiniteFluid(Material.water, flfinwater, 1000, 1000, 0, 8000, "finiteWater");
 		
 
