@@ -47,10 +47,10 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 //	protected TextureAtlasSprite IconFlow;
 
 	//capacity of block in mB
-	public final int capacity;
+	public final int capacity;	//can't be any more than 16! 8 if include falling liquids
 
-	//how many mB are in the block?
-	protected FluidStack stack;
+	//what is the default amount to remove from this block when attempting to remove liquid?
+	protected final FluidStack stack;
 
 	//an ID for this particular liquid Should match fluid registry
 	public final int id;
@@ -69,14 +69,16 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 		this.setTickRate(visc/200);
 		this.id = FluidRegistry.getFluidID(fluid.getName());
 		this.name=nm;
+		if(capacity > 8 || capacity < 1)	//default to relatively standard behavior
+			capacity = 8;
 		this.capacity = capacity;
-		stack = new FluidStack(fluid, capacity);
 		this.setLightOpacity(10);
+		stack = new FluidStack(flu, capacity * FluidContainerRegistry.BUCKET_VOLUME / 8);	//just for easy reference! (8 from 8 levels of water to render)
 		setUnlocalizedName(nm);
 		setCreativeTab(CreativeTabs.tabBlock);
 		GameRegistry.registerBlock(this, nm);	//add the block to the registry
-		System.out.println("Created Finite fluid!");
-		
+		this.setDefaultState(this.blockState.getBaseState().withProperty(LEVEL, 7));	//default to a full block! This already happens because of finite fluid
+		//testing with a full block
 	}
 
 	//@Override
@@ -92,12 +94,11 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 	public boolean canDrain(World world, BlockPos pos)
 	{
 		IBlockState state = world.getBlockState(pos);
-		if(state.getBlock()==this)
+		if(state.getBlock() == this)
 		{
-			if(((FiniteFluid)(state.getBlock())).getAmountLiquid() > 0)
+			if(this.getAmountLiquid(state) > 0)	//there is at least one bucket present!
 				return true;
 		}
-		//((Integer)world.getBlockState(pos).getValue(LEVEL)).intValue() == 0
 		return false;
 	}
 
@@ -105,21 +106,18 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 	public float getFilledPercentage(World world, BlockPos pos)
 	{
 		IBlockState state = world.getBlockState(pos);
-        if (state.getBlock().isAir(world, pos))
-        {
-            return 0;
-        }
 
-        if (state.getBlock() != this)	//in case the block updates before this is called!
-        {
-            return -1;
-        }
-		FiniteFluid thisBlock = ((FiniteFluid)(state.getBlock()));
+		if (state.getBlock().isAir(world, pos))
+            return 0;	//there is no liquid for this!
+
+		if(state.getBlock() instanceof FiniteFluid == false)
+			return -1;	//flag that there is no level associated with this
+
+		int lvl = ((Integer)state.getValue(LEVEL)).intValue();	//0-15, 0=minimal, 8=full falling.
 		
-		if(thisBlock.capacity == 0)
-			return 0;
-
-		return (((float)thisBlock.getAmountLiquid())/((float)thisBlock.capacity));
+		lvl = lvl>=8 ? lvl-7 : lvl+1;	//remove the falling water flag(-8) and add 1
+		//it always varies on 8 levels, though the total capacity may be different
+		return (lvl/8.0f);
 	}
 
 	@Override
@@ -130,28 +128,15 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
         {
             return null;
         }
-		
-		FluidStack ret;
-		int amount;
-
-		//if it made it past canDrain, the block is of type finite fluid
-		FiniteFluid block = (FiniteFluid)state.getBlock();
-
-		if(block.stack.amount >= FluidContainerRegistry.BUCKET_VOLUME)
-			amount = FluidContainerRegistry.BUCKET_VOLUME;	//how much is returned by the drain. default to a bucket.
-		else
-			amount = block.stack.amount;
-
 
         if (doDrain)
         {
 			//if it made it past canDrain, the block is of type finite fluid
-			block.stack.amount -= amount;
-
-			int lvl = getLevel(world, pos, state);
-			if(lvl >= 0)
+			
+			int lvl = ((Integer)state.getValue(LEVEL)).intValue();
+			if(lvl > 0 && lvl!=8)	//it is not the lowest value for draining!
 			{
-				world.setBlockState(pos, state.withProperty(LEVEL,lvl), 2);
+				world.setBlockState(pos, state.withProperty(LEVEL,lvl-1), 2);
 			}
 			else
 			{
@@ -161,71 +146,82 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 		    world.notifyNeighborsOfStateChange(pos, this);
         }
 
-		return new FluidStack(getFluid(), amount);
+		return this.stack.copy();	//blocks with smaller capacity drain smaller amounts!
 
 	}
 
-	private int getLevel(World world, BlockPos pos, IBlockState state)
+	//returns the level for the blockState.
+	public int getLvlFromAmountmB(int amountmB, boolean restrictOneBlock)
+	{
+		int max = this.capacity * FluidContainerRegistry.BUCKET_VOLUME;
+		if(restrictOneBlock && amountmB >= max)
+			return(7);
+		if(amountmB <= 0)
+			return(-1);
+
+		//if max=8,000 (default)
+		return((amountmB*8)/max);
+	}
+
+	private int addLiquid(World world, BlockPos pos, FluidStack fl)
 	{
 	//0 = source
-	//1-7 = flowing, 1=highest
+	//1-7 = flowing, 0=lowest
 	//8-15 = falling. Add 8 to the flowing for the falling...
-		float percentage = getFilledPercentage(world, pos);
-		if(percentage <= 0)
-			return -1;
+		IBlockState state = world.getBlockState(pos);
+		if(state.getBlock().isAir(world,pos))
+		{
+			//do something!
+			int lvl = getLvlFromAmountmB(fl.amount, false);
+			int above=0;
+			while(lvl>=0)
+			{
+				if(lvl < 8)
+					world.setBlockState(pos.add(0,above,0), this.getDefaultState().withProperty(LEVEL, lvl));	//rough work for now...
+				else
+					world.setBlockState(pos.add(0,above,0), this.getDefaultState().withProperty(LEVEL, 7));
+				lvl -= 8;
+				above++;
+			}
+		}
+		else if(!(state.getBlock() instanceof FiniteFluid))
+		{
+			return(-1);
+		}
+		else //we are adding fluid to a finite fluid. Have it push the blocks up if it exceeds capacity!
+		{
+			int lvl = getLvlFromAmountmB(fl.amount + getAmountLiquid(state), false);
+			int above=0;
+			while(lvl>=0)
+			{
+				if(lvl < 8)
+					world.setBlockState(pos.add(0,above,0), this.getDefaultState().withProperty(LEVEL, lvl));	//rough work for now...
+				else
+					world.setBlockState(pos.add(0,above,0), this.getDefaultState().withProperty(LEVEL, 7));
+				lvl -= 8;
+				above++;
+			}
+		}
 
-		int lvl;
-		if(percentage == 1.0f)
-			lvl = 0;	//it is a full block
-		else if(percentage>=0.875f)
-		{
-			lvl = 1;
-		}
-		else if(percentage>=0.75f)
-		{
-			lvl = 2;
-		}
-		else if(percentage>=0.625f)
-		{
-			lvl = 3;
-		}
-		else if(percentage>=0.5f)
-		{
-			lvl = 4;
-		}
-		else if(percentage>=0.375f)
-		{
-			lvl = 5;
-		}
-		else if(percentage>=0.25f)
-		{
-			lvl = 6;
-		}
-		else
-		{
-			lvl = 7;
-		}
-		if(isFiniteFluidFalling(world, pos))
-			lvl += 8;
-		
-		return lvl;
+		return 0;
 	}
 
 	public boolean isFiniteFluidFalling(World world, BlockPos pos)
 	{
 		IBlockState state = world.getBlockState(pos);
-		Block blk = state.getBlock();
-		if(blk != this)
+		
+		if(state.getBlock() != this)
 			return false;
 
-		Block below = world.getBlockState(pos.add(0,-1,0)).getBlock();
+		IBlockState belowS = world.getBlockState(pos.add(0,-1,0));
+		Block below = belowS.getBlock();
 		Material matbel = below.getMaterial();
 		
 		if (below == Blocks.air)
 			return true;
         if (below == this)
         {
-            if(((FiniteFluid)below).getAmountLiquid() < this.capacity)
+            if(this.getAmountLiquid(belowS) < this.capacity)
 				return true;
         }
 		if (displacements.containsKey(below))
@@ -253,9 +249,21 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 		return false;
 	}
 
-	public int getAmountLiquid()
+	
+
+	//returns the amount of mB for the liquid!
+	public int getAmountLiquid(IBlockState state)
 	{
-		return stack.amount;
+		if (state.getBlock().getMaterial() == Material.air)
+            return 0;	//there is no liquid for this!
+
+		if(!(state.getBlock() instanceof FiniteFluid))
+			return 0;
+
+		int lvl = ((Integer)state.getValue(LEVEL)).intValue();	//0-15, 0=minimal block, 7=full, 8=minimal falling.
+		lvl = lvl>=8 ? lvl-7 : lvl+1;	//remove the falling water flag(-8) and add 1
+
+		return (this.capacity * FluidContainerRegistry.BUCKET_VOLUME * lvl / 8);
 	}
 
 	@Override
@@ -264,30 +272,26 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 		//because it is an Override, we know the state
 		//to test behavior, just make it evaporate
 		state = world.getBlockState(pos);	//make sure it's the correct state...
-		Block blk = state.getBlock();
-		if(blk != this)
+		
+		if(!(state.getBlock() instanceof FiniteFluid))
 			return;
-		FiniteFluid thisBlk = (FiniteFluid)blk;
+		
+		
+		int lvl = ((Integer)state.getValue(LEVEL)).intValue();
 
-		int oldLvl = ((Integer)state.getValue(LEVEL)).intValue();
-		System.out.println(Integer.toString(thisBlk.stack.amount));
-		thisBlk.stack.amount -= 50;
-		if(thisBlk.stack.amount < 0)
-			thisBlk.stack.amount = 0;
-
-		int lvl = getLevel(world, pos, state);
+		
 		System.out.println(Integer.toString(lvl));
-		if(lvl >= 0 && lvl != oldLvl)
+		if(lvl > 0)
 		{
-			world.setBlockState(pos, thisBlk.getBlockState().getBaseState().withProperty(LEVEL, lvl), 2);
+			world.setBlockState(pos, state.withProperty(LEVEL, lvl-1), 2);
 		}
-		else if(lvl < 0)
+		else if(lvl == 0)
 		{
 			world.setBlockToAir(pos);
 		}
 		
-		world.notifyNeighborsOfStateChange(pos, thisBlk);
-		world.scheduleUpdate(pos, thisBlk, tickRate);
+		world.notifyNeighborsOfStateChange(pos, this);
+		world.scheduleUpdate(pos, this, 40);
 
 
 /*
