@@ -19,6 +19,10 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.init.Items;
+import net.minecraft.world.biome.BiomeGenBase;
+import net.minecraft.world.biome.BiomeGenOcean;
+import net.minecraft.world.biome.BiomeGenRiver;
+
 //import net.minecraft.util.IIcon;
 
 import net.minecraft.client.Minecraft;
@@ -42,6 +46,8 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 
 	//a link to the type of fluid it is
 	protected final Fluid fluid;
+
+	protected final static int SEALEVEL=62;
 
 //	protected TextureAtlasSprite IconStill;
 //	protected TextureAtlasSprite IconFlow;
@@ -166,7 +172,7 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 	private int addLiquid(World world, BlockPos pos, FluidStack fl)
 	{
 	//0 = source
-	//1-7 = flowing, 0=lowest
+	//1-7 = 'flowing', 0=lowest
 	//8-15 = falling. Add 8 to the flowing for the falling...
 		IBlockState state = world.getBlockState(pos);
 		if(state.getBlock().isAir(world,pos))
@@ -266,6 +272,117 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 		return (this.capacity * FluidContainerRegistry.BUCKET_VOLUME * lvl / 8);
 	}
 
+	public boolean isInfiniteSourceWater(World world, BlockPos pos)
+	{
+		if(world.getBlockState(pos).getBlock() != this)	//will need to be updated to be just the water finite fluid later.
+			return false;
+
+		boolean isOcean = (world.getChunkFromBlockCoords(pos).getBiome(pos, world.getWorldChunkManager()) instanceof BiomeGenOcean);
+		if(pos.getY()==SEALEVEL && isOcean)
+			return true;
+		return false;
+	}
+
+	private BlockPos blockToDrain(World world, BlockPos pos)
+	{
+		IBlockState srcState = world.getBlockState(pos);
+		int numAbove = 0;
+		boolean isOcean = (world.getChunkFromBlockCoords(pos).getBiome(pos, world.getWorldChunkManager()) instanceof BiomeGenOcean);
+		//if it's ocean, when it drains the uppermost block that, it will return null on what blockstate to drain
+		
+		if(((Integer)srcState.getValue(LEVEL)).intValue() == 7)	//this is a non-falling full water block, so there might be water above it!
+		{	
+			IBlockState trgState;
+			do
+			{	
+				numAbove++;
+				trgState = world.getBlockState(pos.up(numAbove));
+				if(trgState.getBlock() != this)
+					break;
+				int lvl = ((Integer)trgState.getValue(LEVEL)).intValue();
+				if(lvl!=7)	//if it is not a completely full block, and moving downwards doesn't count!
+					break;
+			}while(trgState.getBlock()==this);	//it should always break before this...
+			numAbove--;
+		}
+		
+		if(isInfiniteSourceWater(world, pos.up(numAbove)))
+			return null;	//it is coming from an infinite source, so don't actually drain any block.
+		return pos.up(numAbove);
+	}
+
+	//returns null if no falling liquid, otherwise returns the bottom liquid in the stack
+	private BlockPos getBottomFallLiquid(World world, BlockPos pos)
+	{
+		IBlockState state = world.getBlockState(pos);
+		if(state.getBlock()!=this)
+			return null;
+		int lvl = ((Integer)state.getValue(LEVEL)).intValue();
+		if(lvl < 8)
+			return null;
+		int below=0;
+		do
+		{
+			below++;
+			state = world.getBlockState(pos.down(below));
+			if(state.getBlock()!=this)
+				break;
+			lvl = ((Integer)state.getValue(LEVEL)).intValue();
+		}while(lvl >= 8);
+
+		below--;
+		return pos.down(below);
+	}
+
+	//returns how much is left to input
+	@Override
+	public int tryToFlowVerticallyInto(World world, BlockPos pos, int amtToInput)
+    {
+		IBlockState below = world.getBlockState(pos.down(1));	//other stuff will change if it needs to go any lower than directly beneath
+		BlockPos posd = pos.down(1);
+		if (posd.getY() < 0 || posd.getY() >= world.getHeight())
+        {
+            world.setBlockToAir(pos);
+            return 0;
+        }
+		if(below.getBlock().getMaterial() == Material.air)
+		{
+			if(amtToInput > 8)
+			{
+				world.setBlockState(posd, this.getDefaultState().withProperty(LEVEL, 7));
+				world.scheduleUpdate(posd, this, tickRate);
+				return(amtToInput-8);
+			}
+			else
+			{
+				world.setBlockState(posd, this.getDefaultState().withProperty(LEVEL, amtToInput-1));
+				world.scheduleUpdate(posd, this, tickRate);
+				return 0;
+			}
+		}
+		else if(below.getBlock() == this)
+		{
+			int lvl = ((Integer)below.getValue(LEVEL)).intValue();
+			if(lvl>=8)	//just get it to be the total quanta!
+				lvl -= 8;
+
+			int avail = 7 - lvl;
+			if(amtToInput <= avail)
+			{
+				world.setBlockState(posd, below.withProperty(LEVEL, lvl+amtToInput));
+				world.scheduleUpdate(posd, this, tickRate);
+				return 0;
+			}
+			else
+			{
+				world.setBlockState(posd, below.withProperty(LEVEL, 7));
+				world.scheduleUpdate(posd, this, tickRate);
+				return amtToInput-avail;
+			}
+		}
+
+		return amtToInput;
+	}
 	@Override
 	public void updateTick(World world, BlockPos pos, IBlockState state, Random rand)
 	{
@@ -273,13 +390,33 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 		//to test behavior, just make it evaporate
 		state = world.getBlockState(pos);	//make sure it's the correct state...
 		
-		if(!(state.getBlock() instanceof FiniteFluid))
+		if(state.getBlock() != this)
 			return;
-		
-		
-		int lvl = ((Integer)state.getValue(LEVEL)).intValue();
 
-		
+		IBlockState below = world.getBlockState(pos.down(1));
+		Block bbelow = below.getBlock();
+
+		int lvl = ((Integer)state.getValue(LEVEL)).intValue();
+		//make entire column fall!
+		//Falling water does not get events scheduled unless it is the lowest y flowing water in the bunch!
+		if(lvl >= 8)	//it is falling
+		{
+			BlockPos lowest = this.getBottomFallLiquid(world, pos);	//this is the lowest falling water.
+			if(bbelow == this)
+			{
+			}
+			else if(displaceIfPossible(world, pos.down(1)))	//it will not displace itself
+			{
+			}
+			world.scheduleUpdate(pos, this, tickRate);
+		}
+		else
+		{
+			
+		}
+
+    {
+		/*
 		System.out.println(Integer.toString(lvl));
 		if(lvl > 0)
 		{
@@ -289,9 +426,9 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 		{
 			world.setBlockToAir(pos);
 		}
-		
+		*/
 		world.notifyNeighborsOfStateChange(pos, this);
-		world.scheduleUpdate(pos, this, 40);
+		
 
 
 /*

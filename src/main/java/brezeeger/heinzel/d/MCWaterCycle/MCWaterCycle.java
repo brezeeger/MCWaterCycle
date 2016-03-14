@@ -60,12 +60,12 @@ public class MCWaterCycle /*extends DummyModContainer*/ {
 		System.out.println("Called method: Init MCWaterCycle");
 		proxy.init(event);
 
-		WetGrass = new WetBlock(Block.getBlockFromName("grass"), 8, 20, 2, "wetgrass");
-		WetDirt = new WetBlock(Block.getBlockFromName("dirt"), 8, 20, 2, "mud");
-		WetSand = new WetBlock(Block.getBlockFromName("sand"), 4, 20, 3, "wetsand");
-		WetCobble = new WetBlock(Block.getBlockFromName("cobblestone"), 2, 20, 1, "wetcobblestone");
-		WetGravel = new WetBlock(Block.getBlockFromName("gravel"), 6, 20, 4, "wetgravel");	
-		flfinwater = new Fluid("finiteWater", new ResourceLocation("blocks/water_still"), new ResourceLocation("blocks/water_flow"));
+		WetGrass = new WetBlock(Block.getBlockFromName("grass"), 8, 20, 2, MODID.toLowerCase()+":"+"wetgrass");
+		WetDirt = new WetBlock(Block.getBlockFromName("dirt"), 8, 20, 2, MODID.toLowerCase()+":"+"mud");
+		WetSand = new WetBlock(Block.getBlockFromName("sand"), 4, 20, 3, MODID.toLowerCase()+":"+"wetsand");
+		WetCobble = new WetBlock(Block.getBlockFromName("cobblestone"), 2, 20, 1, MODID.toLowerCase()+":"+"wetcobblestone");
+		WetGravel = new WetBlock(Block.getBlockFromName("gravel"), 6, 20, 4, MODID.toLowerCase()+":"+"wetgravel");	
+		flfinwater = new Fluid(MODID.toLowerCase()+":"+"finiteWater", new ResourceLocation("blocks/water_still"), new ResourceLocation("blocks/water_flow"));
 		//flfinwater = new Fluid("finiteWater", new ResourceLocation(MODID.toLowerCase()+":"+"blocks/finiteWater"),
 		// new ResourceLocation(MODID.toLowerCase()+":"+"blocks/finiteWater"));
 		finiteWater = new FiniteFluid(Material.water, flfinwater, 1000, 1000, 0, 8000, "finiteWater");
