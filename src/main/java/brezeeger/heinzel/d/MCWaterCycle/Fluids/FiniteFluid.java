@@ -668,6 +668,10 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 				//cycle through the four sides until all are < 1.
 				//create 5 array to adjust water quickly instead of via a bunch of world updates
 				//always test flow 1
+
+				//this didn't work.
+
+
 				//attempt flowing
 				//flow will be determined by first going over cliffs, defined as the block beneath and offset being water or air.
 				//to flow over, it must have water content greater than the adjacent spot.
@@ -677,6 +681,8 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 				depth = new int[5];
 				displacement = new int[4];
 				trgPos = new BlockPos[4];	//stop dealing with all these enums in the following code
+				boolean[] change;
+				change = new boolean[5];
 				depth[4] = failFall;	//the current lvl of the position
 				int i=0;
 				//initialize everything
@@ -688,11 +694,11 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 						depth[i] = ((Integer)world.getBlockState(trgPos[i]).getValue(LEVEL)).intValue()+1;
 						displacement[i] = depth[4] - depth[i];
 					}
-					else if (displaceIfPossible(world, trgPos[i])) //it can go into the adjacent block
+					else if (canDisplace(world, trgPos[i])) //it can go into the adjacent block, which is not a liquid
 					{
 						depth[i] = 0;
 						displacement[i] = depth[4];
-						if(world.getBlockState(trgPos[i].down()).getBlock() == this || world.getBlockState(trgPos[i].down()).getBlock().getMaterial() == Material.air)
+						if(world.getBlockState(trgPos[i].down()).getBlock() == this || canDisplace(world, trgPos[i].down()))
 							displacement[i] += 16;
 					}
 					else
@@ -700,13 +706,13 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 						depth[i] = -1;
 						displacement[i] = -1;
 					}
+					change[i] = false;
 					i++;
 				}
 				
 				int biggest;	//default to no good places to go
 				int largestDisplacement;
-				boolean[] change;
-				change = new boolean[5];
+				change[4] = false;
 				do
 				{
 					largestDisplacement = 1;	//ignore anything that is not bigger than this!
@@ -740,27 +746,57 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 				//now it's time to set the adjacent water levels
 				if(change[0])
 				{
-					world.setBlockState(trgPos[0], state.withProperty(LEVEL, depth[0]-1), 2);
+					if(depth[0] > 0)
+					{
+						displaceIfPossible(world, trgPos[0]);
+						world.setBlockState(trgPos[0], state.withProperty(LEVEL, depth[0]-1), 2);
+					}
+					else
+						world.setBlockToAir(trgPos[0]);
 					world.scheduleUpdate(trgPos[0], this, tickRate);
 				}
 				if(change[1])
 				{
-					world.setBlockState(trgPos[1], state.withProperty(LEVEL, depth[1]-1), 2);
-					world.scheduleUpdate(trgPos[0], this, tickRate);
+					if(depth[1] > 0)
+					{
+						displaceIfPossible(world, trgPos[1]);
+						world.setBlockState(trgPos[1], state.withProperty(LEVEL, depth[1]-1), 2);
+					}
+					else
+						world.setBlockToAir(trgPos[1]);
+					world.scheduleUpdate(trgPos[1], this, tickRate);
+					
 				}
 				if(change[2])
 				{
-					world.setBlockState(trgPos[2], state.withProperty(LEVEL, depth[2]-1), 2);
-					world.scheduleUpdate(trgPos[0], this, tickRate);
+					if(depth[2] > 0)
+					{
+						displaceIfPossible(world, trgPos[2]);
+						world.setBlockState(trgPos[2], state.withProperty(LEVEL, depth[2]-1), 2);
+					}
+					else
+						world.setBlockToAir(trgPos[2]);
+					world.scheduleUpdate(trgPos[2], this, tickRate);
 				}
 				if(change[3])
 				{
-					world.setBlockState(trgPos[3], state.withProperty(LEVEL, depth[3]-1), 2);
-					world.scheduleUpdate(trgPos[0], this, tickRate);
+					if(depth[3] > 0)
+					{
+						displaceIfPossible(world, trgPos[3]);
+						world.setBlockState(trgPos[3], state.withProperty(LEVEL, depth[3]-1), 2);
+					}
+					else
+						world.setBlockToAir(trgPos[3]);
+					world.scheduleUpdate(trgPos[3], this, tickRate);
 				}
-				if(change[4])
+				if(change[4])	//this was the original spot, and it can't displace itself!
 				{
-					world.setBlockState(pos, state.withProperty(LEVEL, depth[4]-1), 2);
+					if(depth[4] > 0)
+					{
+						world.setBlockState(pos, state.withProperty(LEVEL, depth[4]-1), 2);
+					}
+					else
+						world.setBlockToAir(pos);
 					world.scheduleUpdate(pos, this, tickRate);
 				}
 			}
@@ -796,7 +832,9 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 			world.setBlockToAir(pos);
 		}
 		*/
-		world.notifyNeighborsOfStateChange(pos, this);	//will only do this when water becomes a source block
+
+
+//		world.notifyNeighborsOfStateChange(pos, this);	//will only do this when water becomes a source block
 		
 		
 
