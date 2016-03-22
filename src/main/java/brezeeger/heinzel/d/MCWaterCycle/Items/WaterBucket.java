@@ -28,8 +28,14 @@ import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.IFluidBlock;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.registry.GameRegistry;
+import net.minecraftforge.fluids.FluidContainerRegistry;
 
-//import brezeeger.heinzel.d.MCWaterCycle;
+import net.minecraftforge.fml.common.eventhandler.Event.Result;
+
+import brezeeger.heinzel.d.MCWaterCycle.MCWaterCycle;
+import brezeeger.heinzel.d.MCWaterCycle.Fluids.FiniteFluid;
+
 import net.minecraftforge.event.entity.player.FillBucketEvent;
 
 public class WaterBucket extends ItemBucket {
@@ -38,14 +44,19 @@ public class WaterBucket extends ItemBucket {
 	public Fluid fluid;
 
 
-//	public static WaterBucket INSTANCE = new WaterBucket(new Fluid());
+	//public static WaterBucket INSTANCE = new WaterBucket(MCWaterCycle.flfinwater, "Water Bucket");
     public Map<Block, Item> buckets = new HashMap<Block, Item>();
 
     public WaterBucket(Fluid fl, String nm) {
-		super(Blocks.water);
+		super(fl.getBlock());
 		this.name = nm;
 //		set_UnlocalizedName(Reference.MODID
 		fluid = fl;
+		setUnlocalizedName(nm);
+//		setCreativeTab(CreativeTabs.tabBlock);	//make the block visible in creative mode
+		GameRegistry.registerItem(this, this.name);	//add the block to the registry
+		FluidContainerRegistry.registerFluidContainer(fl, new ItemStack(this), new ItemStack(Items.bucket));
+		buckets.put(fl.getBlock(), this);
     }
 
 	/*
@@ -62,19 +73,27 @@ public class WaterBucket extends ItemBucket {
                 return;
 
         event.result = result;
-//        event.setResult(Result.ALLOW);
+        event.setResult(Result.ALLOW);	//say this event is done being processed
     }
 
     private ItemStack fillCustomBucket(World world, MovingObjectPosition pos) {
 
 		IBlockState state = world.getBlockState(pos.getBlockPos());
         Block block = state.getBlock();
-
-        Item bucket = buckets.get(block);
-        if (bucket != null && state != null) {	//want to test no meta data?
-                world.setBlockToAir(pos.getBlockPos());
-                return new ItemStack(bucket);
-        } else
+		if(block == MCWaterCycle.finiteWater)
+		{
+			Item bucket = buckets.get(block);
+			((FiniteFluid)block).removeLiquid(world, pos.getBlockPos(), 1);
+            //world.setBlockToAir(pos.getBlockPos());
+            return new ItemStack(bucket);
+		}
+		else if(block == Blocks.water)	//whatever water gets out there, replace it with finite water in the bucket
+		{
+			Item bucket = buckets.get(MCWaterCycle.finiteWater);
+			world.setBlockToAir(pos.getBlockPos());
+            return new ItemStack(bucket);
+		}
+		else
 	        return null;
     }
 

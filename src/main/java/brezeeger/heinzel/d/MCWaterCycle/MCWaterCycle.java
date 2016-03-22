@@ -21,6 +21,7 @@ import net.minecraft.util.ResourceLocation;
 
 import brezeeger.heinzel.d.MCWaterCycle.Blocks.WetBlock;
 import brezeeger.heinzel.d.MCWaterCycle.Fluids.FiniteFluid;
+import brezeeger.heinzel.d.MCWaterCycle.Items.WaterBucket;
 import net.minecraftforge.fluids.Fluid;
 
 @Mod(modid = MCWaterCycle.MODID, version = MCWaterCycle.VERSION)
@@ -37,7 +38,8 @@ public class MCWaterCycle /*extends DummyModContainer*/ {
 	public static Block WetCobble;
 	public static Block WetGravel;
 	public static Block finiteWater;
-	public static Fluid flfinwater; 
+	public static Fluid flfinwater;
+	public static Item watBucket;
 
     
 	@Instance
@@ -59,31 +61,6 @@ public class MCWaterCycle /*extends DummyModContainer*/ {
     public void init(FMLInitializationEvent  event) {
 		//System.out.println("Called method: Init MCWaterCycle");
 		proxy.init(event);
-
-		WetGrass = new WetBlock(Block.getBlockFromName("grass"), 8, 20, 2, "wetgrass");
-		WetDirt = new WetBlock(Block.getBlockFromName("dirt"), 8, 20, 2, "mud");
-		WetSand = new WetBlock(Block.getBlockFromName("sand"), 4, 20, 3, "wetsand");
-		WetCobble = new WetBlock(Block.getBlockFromName("cobblestone"), 2, 20, 1, "wetcobblestone");
-		//WetCobble = new WetBlock(Block.getBlockFromName("cobblestone"), 2, 20, 1, MODID.toLowerCase()+":"+"wetcobblestone");
-		WetGravel = new WetBlock(Block.getBlockFromName("gravel"), 6, 20, 4, "wetgravel");	
-		flfinwater = new Fluid(/*MODID.toLowerCase()+":"+*/"finiteWater", new ResourceLocation("blocks/water_still"), new ResourceLocation("blocks/water_flow"));
-		//flfinwater = new Fluid("finiteWater", new ResourceLocation(MODID.toLowerCase()+":"+"blocks/finiteWater"),
-		// new ResourceLocation(MODID.toLowerCase()+":"+"blocks/finiteWater"));
-		finiteWater = new FiniteFluid(Material.water, flfinwater, 1000, 1000, 0, 8000, "finiteWater");
-		
-
-		if(event.getSide() == Side.CLIENT)
-		{
-			RenderItem rend = Minecraft.getMinecraft().getRenderItem();
-			//System.out.println("Registering textures");
-
-			rend.getItemModelMesher().register(Item.getItemFromBlock(WetGrass), 0, new ModelResourceLocation(MODID+":"+((WetBlock)WetGrass).getName(), "inventory"));
-			rend.getItemModelMesher().register(Item.getItemFromBlock(WetDirt), 0, new ModelResourceLocation(MODID+":"+((WetBlock)WetDirt).getName(), "inventory"));
-			rend.getItemModelMesher().register(Item.getItemFromBlock(WetSand), 0, new ModelResourceLocation(MODID+":"+((WetBlock)WetSand).getName(), "inventory"));
-			rend.getItemModelMesher().register(Item.getItemFromBlock(WetCobble), 0, new ModelResourceLocation(MODID+":"+((WetBlock)WetCobble).getName(), "inventory"));
-			rend.getItemModelMesher().register(Item.getItemFromBlock(WetGravel), 0, new ModelResourceLocation(MODID+":"+((WetBlock)WetGravel).getName(), "inventory"));
-			rend.getItemModelMesher().register(Item.getItemFromBlock(finiteWater), 0, new ModelResourceLocation(MODID+":"+((FiniteFluid)finiteWater).getName(), "inventory"));
-		}
 
 	}
 	@EventHandler

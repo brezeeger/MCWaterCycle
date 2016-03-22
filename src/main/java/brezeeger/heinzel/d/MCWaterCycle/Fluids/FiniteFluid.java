@@ -307,7 +307,7 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 	}
 
 	//returns amount not removed
-	private int removeLiquid(World world, BlockPos pos, int amt)
+	public int removeLiquid(World world, BlockPos pos, int amt)
 	{
 	//0 = source
 	//1-7 = 'flowing', 0=lowest
