@@ -14,6 +14,9 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.client.Minecraft;
+import net.minecraft.block.properties.IProperty;
+import net.minecraft.block.properties.PropertyInteger;
+import net.minecraft.block.properties.PropertyBool;
 
 public class WetBlock extends Block {
 	private final String name;
@@ -35,6 +38,9 @@ public class WetBlock extends Block {
 
 	//how many mB of water are present in the block
 	public int WaterPresent;
+
+	public static final PropertyInteger LEVEL = PropertyInteger.create("level", 0, 7);
+	public static final PropertyBool EVAPORATE = PropertyBool.create("evaporate");
 
 
 	public WetBlock(Block blkdead, int mx, int tick, int seep, String nme)
