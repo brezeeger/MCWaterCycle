@@ -52,12 +52,12 @@ public class MCWaterCycle /*extends DummyModContainer*/ {
 		// some example code
 //        System.out.println("DIRT BLOCK >> "+Blocks.dirt.getUnlocalizedName());
 		proxy.preInit(event);
-		System.out.println("Called method: PreInit MCWaterCycle");
+//		System.out.println("Called method: PreInit MCWaterCycle");
     }
 
 	@EventHandler
     public void init(FMLInitializationEvent  event) {
-		System.out.println("Called method: Init MCWaterCycle");
+		//System.out.println("Called method: Init MCWaterCycle");
 		proxy.init(event);
 
 		WetGrass = new WetBlock(Block.getBlockFromName("grass"), 8, 20, 2, "wetgrass");
@@ -75,7 +75,7 @@ public class MCWaterCycle /*extends DummyModContainer*/ {
 		if(event.getSide() == Side.CLIENT)
 		{
 			RenderItem rend = Minecraft.getMinecraft().getRenderItem();
-			System.out.println("Registering textures");
+			//System.out.println("Registering textures");
 
 			rend.getItemModelMesher().register(Item.getItemFromBlock(WetGrass), 0, new ModelResourceLocation(MODID+":"+((WetBlock)WetGrass).getName(), "inventory"));
 			rend.getItemModelMesher().register(Item.getItemFromBlock(WetDirt), 0, new ModelResourceLocation(MODID+":"+((WetBlock)WetDirt).getName(), "inventory"));
@@ -88,7 +88,7 @@ public class MCWaterCycle /*extends DummyModContainer*/ {
 	}
 	@EventHandler
     public void postInit(FMLPostInitializationEvent  event){
-		System.out.println("Called method: PostInit MCWaterCycle");
+//		System.out.println("Called method: PostInit MCWaterCycle");
 		proxy.postInit(event);
 	}
 
