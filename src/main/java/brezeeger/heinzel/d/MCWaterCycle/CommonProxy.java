@@ -40,7 +40,7 @@ public class CommonProxy {
 		MCWaterCycle.finiteWater = new FiniteFluid(Material.water, MCWaterCycle.flfinwater, 1000, 1000, 0, 8000, "finiteWater");
 		MCWaterCycle.watBucket = new WaterBucket(MCWaterCycle.flfinwater, "finite_water_bucket");
 
-		MinecraftForge.EVENT_BUS.register(new ReplaceWater());
+//		MinecraftForge.EVENT_BUS.register(new ReplaceWater());
 		MinecraftForge.EVENT_BUS.register(MCWaterCycle.watBucket);	//need a bucket instance just to steal all bucket events
 		
     }

@@ -31,6 +31,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fluids.FluidContainerRegistry;
 import net.minecraft.stats.StatList;
+import net.minecraftforge.fluids.BlockFluidBase;
 
 import net.minecraftforge.fml.common.eventhandler.Event.Result;
 
@@ -100,7 +101,7 @@ public class WaterBucket extends ItemBucket {
 			}
 			if(block == MCWaterCycle.finiteWater)	//if it's this block, it will definitely succeed. If infinite source, no amount of buckets will save you.
 			{
-				Item bucket = buckets.get(block);
+//				Item bucket = buckets.get(block);
 				int fail = ((FiniteFluid)block).removeLiquid(world, bpos, 1);
 //				System.out.println("Removed " + (1-fail) + " bucket of finite water");
 				player.triggerAchievement(StatList.objectUseStats[Item.getIdFromItem(this)]);
@@ -109,9 +110,10 @@ public class WaterBucket extends ItemBucket {
 			}
 			else if(block == Blocks.water)	//whatever water gets out there, replace it with finite water in the bucket
 			{
-				Item bucket = buckets.get(MCWaterCycle.finiteWater);
+//				Item bucket = buckets.get(MCWaterCycle.finiteWater);
 //				System.out.println("Removed one bucket of minecraft water");
-				world.setBlockToAir(pos.getBlockPos());
+				int fail = ((FiniteFluid)MCWaterCycle.finiteWater).removeLiquid(world, bpos, 1);
+//				world.setBlockState(bpos, MCWaterCycle.finiteWater.getDefaultState().withProperty(BlockFluidBase.LEVEL, 6));
 				player.triggerAchievement(StatList.objectUseStats[Item.getIdFromItem(this)]);
                 
 			    return new ItemStack(Items.water_bucket);
