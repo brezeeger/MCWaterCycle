@@ -38,7 +38,7 @@ public class CommonProxy {
 		//flfinwater = new Fluid("finiteWater", new ResourceLocation(MODID.toLowerCase()+":"+"blocks/finiteWater"),
 		// new ResourceLocation(MODID.toLowerCase()+":"+"blocks/finiteWater"));
 		MCWaterCycle.finiteWater = new FiniteFluid(Material.water, MCWaterCycle.flfinwater, 1000, 1000, 0, 8000, "finiteWater");
-		MCWaterCycle.watBucket = new WaterBucket(MCWaterCycle.flfinwater, "Water Bucket");
+		MCWaterCycle.watBucket = new WaterBucket(MCWaterCycle.flfinwater, "My Water Bucket");
 
 		MinecraftForge.EVENT_BUS.register(new ReplaceWater());
 		MinecraftForge.EVENT_BUS.register(MCWaterCycle.watBucket);

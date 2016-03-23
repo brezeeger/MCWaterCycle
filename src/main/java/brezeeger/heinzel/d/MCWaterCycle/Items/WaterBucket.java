@@ -30,6 +30,7 @@ import net.minecraftforge.fluids.IFluidBlock;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fluids.FluidContainerRegistry;
+import net.minecraft.stats.StatList;
 
 import net.minecraftforge.fml.common.eventhandler.Event.Result;
 
@@ -65,37 +66,78 @@ public class WaterBucket extends ItemBucket {
 	MinecraftForge.EVENT_BUS.register(BucketHandler.INSTANCE);
 	*/
     @SubscribeEvent
-    public void onBucketFill(FillBucketEvent event) {
+    public void onBucketFill(FillBucketEvent event) {	//thisis called whenever a bucket is right clicked, regardless of whether it has fluid in it or not!
 
-        ItemStack result = fillCustomBucket(event.world, event.target);
-
+		System.out.println("Started custom bucket processing");
+        ItemStack result = processBucket(event.world, event.target, event.current, event.entityPlayer);
+		if(result == event.current)
+		{
+			event.setCanceled(true);
+			System.out.println("Bucket Processing cancelled");
+			return;
+		}
         if (result == null)
-                return;
-
+			return;
+		System.out.println("Done bucket processing");
         event.result = result;
         event.setResult(Result.ALLOW);	//say this event is done being processed
     }
 
-    private ItemStack fillCustomBucket(World world, MovingObjectPosition pos) {
+    private ItemStack processBucket(World world, MovingObjectPosition pos, ItemStack currentItem, EntityPlayer player) {
 
-		IBlockState state = world.getBlockState(pos.getBlockPos());
-        Block block = state.getBlock();
-		if(block == MCWaterCycle.finiteWater)
+		if(currentItem.getItem() == Items.bucket)
 		{
-			Item bucket = buckets.get(block);
-			((FiniteFluid)block).removeLiquid(world, pos.getBlockPos(), 1);
-            //world.setBlockToAir(pos.getBlockPos());
-            return new ItemStack(bucket);
+			BlockPos bpos = pos.getBlockPos();
+			IBlockState state = world.getBlockState(bpos);
+			Block block = state.getBlock();
+			System.out.println("Attempting to fill with: " +block.getUnlocalizedName());
+			if(block.getMaterial().isLiquid() == false)	//if it is not full, it may do a different block
+			{
+				bpos = bpos.offset(pos.sideHit);
+				state = world.getBlockState(bpos);
+				block = state.getBlock();
+				System.out.println("Now attempting to fill with: " +block.getUnlocalizedName());
+			}
+			if(block == MCWaterCycle.finiteWater)	//if it's this block, it will definitely succeed. If infinite source, no amount of buckets will save you.
+			{
+				Item bucket = buckets.get(block);
+				int fail = ((FiniteFluid)block).removeLiquid(world, bpos, 1);
+				System.out.println("Removed " + (1-fail) + " bucket of finite water");
+				player.triggerAchievement(StatList.objectUseStats[Item.getIdFromItem(this)]);
+			    //world.setBlockToAir(pos.getBlockPos());
+			    return new ItemStack(Items.water_bucket);
+			}
+			else if(block == Blocks.water)	//whatever water gets out there, replace it with finite water in the bucket
+			{
+				Item bucket = buckets.get(MCWaterCycle.finiteWater);
+				System.out.println("Removed one bucket of minecraft water");
+				world.setBlockToAir(pos.getBlockPos());
+				player.triggerAchievement(StatList.objectUseStats[Item.getIdFromItem(this)]);
+                
+			    return new ItemStack(Items.water_bucket);
+			}
+			else
+				return null;
 		}
-		else if(block == Blocks.water)	//whatever water gets out there, replace it with finite water in the bucket
+		else if(currentItem.getItem() == Items.water_bucket)	//it was a qater bucket - put out the finite liquid instead
 		{
-			Item bucket = buckets.get(MCWaterCycle.finiteWater);
-			world.setBlockToAir(pos.getBlockPos());
-            return new ItemStack(bucket);
+			BlockPos bpos = pos.getBlockPos().offset(pos.sideHit);
+			System.out.println("Using water bucket!");
+			int fail = ((FiniteFluid)MCWaterCycle.finiteWater).addLiquid(world, bpos, 1, false, false);
+			if(fail==0)
+			{
+				world.scheduleUpdate(bpos, MCWaterCycle.finiteWater, MCWaterCycle.finiteWater.tickRate(world));
+				System.out.println("Added Finite water instead of normal water");
+				return new ItemStack(Items.bucket);
+			}
+			else
+			{
+				System.out.println("Failed using water bucket!");
+				return currentItem;
+			}
 		}
-		else
-	        return null;
-    }
 
+		return null;
+	}
 	public String getName() { return(name); }
 }

@@ -87,7 +87,7 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 		setUnlocalizedName(nm);
 		setCreativeTab(CreativeTabs.tabBlock);
 		GameRegistry.registerBlock(this, nm);	//add the block to the registry
-		this.setDefaultState(this.blockState.getBaseState().withProperty(LEVEL, 7));	//default to a full block! This already happens because of finite fluid
+//		this.setDefaultState(this.blockState.getBaseState().withProperty(LEVEL, 7));	//default to a full block! This already happens because of finite fluid
 		//testing with a full block
 	}
 
@@ -216,7 +216,7 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 		return 0;
 	}
 
-	private int addLiquid(World world, BlockPos pos, int amt, boolean falling)
+	public int addLiquid(World world, BlockPos pos, int amt, boolean falling, boolean preventRise)
 	{
 	//0 = source
 	//1-7 = 'flowing', 0=lowest
@@ -274,6 +274,10 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 					amt = 0;	//none left over
 				}
 			}
+			else if(lvl == 7 && !preventRise)
+			{
+				return (addLiquid(world, pos.up(), amt, falling, preventRise));
+			}
         }
 		else if(state.getBlock().getMaterial() == Material.lava)
 		{
@@ -297,6 +301,10 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 				amt -= 8;
 			}
 		}
+		else
+		{
+			System.out.println("Failed to add liquid to block " + state.getBlock().getUnlocalizedName());
+		}
 //        if (!state.getBlock().getMaterial().blocksMovement() && state.getBlock().getMaterial() != Material.portal)
  //       {
   //          return true;
@@ -319,7 +327,7 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 
 		if(amt < 0)
 		{
-			amt = -addLiquid(world, pos, -amt, false);
+			amt = -addLiquid(world, pos, -amt, false, true);
 			return(amt);
 		}
 		IBlockState state = world.getBlockState(pos);
@@ -350,28 +358,57 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 				}
 				else
 				{
+					if(canAcceptLiquid(world, pos.down()))	//should the water enter a falling state - notable for some removeLiquid from above
+						newTot += 8;
 					world.setBlockState(pos, this.getDefaultState().withProperty(LEVEL, newTot));
 					amt = 0;	//none left over
 				}
 			}
         }
+		else
+			System.out.println("Attempted and failed to remove liquid from " + state.getBlock().getUnlocalizedName());
 		return amt;
 	}
 
+	public boolean canAcceptLiquid(World world, BlockPos pos)
+	{
+		IBlockState state = world.getBlockState(pos);
+		Block blk = state.getBlock();
+
+		if(blk.getMaterial() == Material.air)
+			return true;
+
+		if(blk == this)
+		{
+			int lvl = getQuantaValue(world, pos);
+			System.out.println("canAcceptLiquid: lvl: " + lvl);
+			if(lvl < 8)
+				return true;
+			else if(lvl == 8)
+				return false;
+			else if(lvl < 16)
+				return true;
+			return false;
+		}
+		else if(canDisplace(world, pos))
+			return true;
+
+		return false;
+	}
 	//returns amount failed on transfer (or -1 if no water at source)
-	public int transferAllLiquid(World world, BlockPos source, BlockPos target)
+	public int transferAllLiquid(World world, BlockPos source, BlockPos target, boolean preventRise)
 	{
 		IBlockState srcState = world.getBlockState(source);
 		if(srcState.getBlock() != this)	//there was no liquid!
 			return -1;	//signify that it could
 		int amt = ((Integer)srcState.getValue(LEVEL)).intValue();
 		amt = amt>=8 ? amt-7 : amt+1;
-		amt = transferLiquid(world, source, target, amt);
+		amt = transferLiquid(world, source, target, amt, preventRise);
 		return amt;
 	}
 
 	//returns amount failed on transfer
-	public int transferLiquid(World world, BlockPos source, BlockPos target, int amt)
+	public int transferLiquid(World world, BlockPos source, BlockPos target, int amt, boolean preventRise)
 	{
 
 		IBlockState srcState = world.getBlockState(source);
@@ -379,8 +416,13 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 		
 		//there's gotta be water here!
 		if(srcState.getBlock() != this)
+		{
+			System.out.println("Incorrect block to transfer liquid from: " + srcState.getBlock().getUnlocalizedName());
 			return amt;
+		}
 		int maxRemove = ((Integer)(srcState.getValue(LEVEL))).intValue()+1;
+		if(maxRemove > 8)
+			maxRemove -= 8;
 		int maxReceive = 8;
 		if(trgState.getBlock() == this)
 			maxReceive = 7 - ((Integer)(trgState.getValue(LEVEL))).intValue();
@@ -389,14 +431,19 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 		else if(canDisplace(world, target)==false)
 			maxReceive = 0;
 
+		if(maxReceive < 0)	//it was falling liquid beneath
+			maxReceive += 8;
 
+		System.out.println("MaxRemove: " + maxRemove + "   ----- MaxReceive:  " + maxReceive);
 		int maxChange = (maxRemove < maxReceive) ? maxRemove:maxReceive;
 		int fail = amt > maxChange ? amt-maxChange : 0;
 		int transfer = amt > maxChange ? maxChange : amt;
 		if(transfer > 0)
 		{
+			if(target.up().equals(source))
+				preventRise = true;
 			removeLiquid(world, source, transfer);	//don't let any block updates occur needlessly
-			addLiquid(world, target, transfer, (target.getY() < source.getY()) );
+			addLiquid(world, target, transfer, (target.getY() < source.getY()), preventRise);
 			world.scheduleUpdate(target, this, tickRate);
 			world.scheduleUpdate(source, this, tickRate);
 		}
@@ -496,12 +543,15 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 				numAbove++;
 				trgState = world.getBlockState(pos.up(numAbove));
 				if(trgState.getBlock() != this)
+				{
+					numAbove--;
 					break;
+				}
 				int lvl = ((Integer)trgState.getValue(LEVEL)).intValue();
 				if(lvl!=7)	//if it is not a completely full block, and moving downwards doesn't count!
 					break;
 			}while(trgState.getBlock()==this);	//it should always break before this...
-			numAbove--;
+			
 		}
 		
 //		if(isInfiniteSourceWater(world, pos.up(numAbove)))
@@ -523,7 +573,7 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 		if(state.getBlock()!=this)// || statebelow.getBlock().getMaterial()!=Material.air)
 			return 0;
 
-		
+		System.out.println("Will be falling remaining liquid above!");
 		int offset = 0;
 		do
 		{
@@ -635,16 +685,16 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 		if(state.getBlock() != this)
 			return;
 
-		
+		System.out.println("Processing water in tick: " + pos.getX() + " " + pos.getY() + " " + pos.getZ());
 
-		IBlockState below = world.getBlockState(pos.down(1));
-		Block bbelow = below.getBlock();
 		int lvl = ((Integer)state.getValue(LEVEL)).intValue();
-		if(bbelow==this)
+		if(canAcceptLiquid(world, pos.down()))	//should this actually be falling?
 		{
-			if(((Integer)below.getValue(LEVEL)).intValue() >= 8 && lvl < 8)	//if falling water below
-				lvl += 8;	//trick system into thinking this water is falling and do essentially nothing
-
+			if(lvl < 8)
+			{
+				lvl += 8;
+				world.setBlockState(pos, state.withProperty(LEVEL, lvl), 2);
+			}
 		}
 
 		//make entire column fall!
@@ -654,11 +704,12 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 		if(lvl >= 8)	//it is already falling water or on top of falling water
 		{
 			BlockPos lowest = this.getBottomFallLiquid(world, pos);	//this is the lowest falling water.
-			
+			System.out.println("Looking at falling water in tick");
 			if(pos.equals(lowest)) //process the entire stack, starting from the bottom and working the way up
 			{ //note, must do pos incase lowest is NULL, at which point it fails miserably
+				System.out.println("Processing lowest falling water in tick");
 				int yOffset=0;
-				int notFall = transferAllLiquid(world, pos.up(yOffset), pos.up(yOffset-1));	//this will put water below
+				int notFall = transferAllLiquid(world, pos.up(yOffset), pos.up(yOffset-1), true);	//this will put water below
 				int wlvl;
 				while(notFall > 0)	//up MUST be a source for notFall to be > 0
 				{
@@ -671,22 +722,25 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 						{
 							world.setBlockState(pos.up(yOffset), up.withProperty(LEVEL, wlvl-8), 2);
 							world.scheduleUpdate(pos.up(yOffset), this, tickRate);
+							System.out.println("Converted falling water to normal water");
 						}
 					}
 					else //the block below is water, but it failed to transfer it all, so the block below must be full (source)
 					{
 						world.setBlockState(pos.up(yOffset-1), down.withProperty(LEVEL, 7), 2);
 						world.scheduleUpdate(pos.up(yOffset-1), this, tickRate);
+						System.out.println("Converted lower falling water to full normal water");
 						//if the block below is full, then this water ought to not be falling anymore!
 						wlvl = ((Integer)up.getValue(LEVEL)).intValue();
 						if(wlvl >= 8)
 						{
 							world.setBlockState(pos.up(yOffset), up.withProperty(LEVEL, wlvl-8), 2);
 							world.scheduleUpdate(pos.up(yOffset), this, tickRate);
+							System.out.println("Converted upper falling water to normal water");
 						}
 					}
 					yOffset++;
-					notFall = transferAllLiquid(world, pos.up(yOffset), pos.up(yOffset-1));	//continue transferring water down
+					notFall = transferAllLiquid(world, pos.up(yOffset), pos.up(yOffset-1), true);	//continue transferring water down
 					//such that it creates new sources
 				}
 				//at this point, it has transferred all of one falling block into an empty block, so it stayed falling
@@ -696,8 +750,11 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 			}
 			if(lowest != null)
 			{
-				if(this.getQuantaValue(world, lowest) >= 8)
+				if(this.getQuantaValue(world, lowest) > 8)
+				{
 					world.scheduleUpdate(lowest, this, tickRate);	//make sure the lowest one will get a tick to update!
+					System.out.println("Schedule lowest water");
+				}
 			}
 			keepGoing = false;
 		}
@@ -707,16 +764,18 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 			int failFall = 0;
 			if(drainPos.equals(pos))	//it's the same block, so just do this once
 			{
-				failFall = transferAllLiquid(world, pos, pos.down());
+				failFall = transferAllLiquid(world, pos, pos.down(), true);
+				System.out.println("Failed dropping " + failFall + " liquids below (drainPos=Pos)");
 			}
 			else //it is at least one block over this, which means the block below is completely full. AKA, it will fully fill it
 			{
-				failFall = transferAllLiquid(world, drainPos, pos.down());
+				failFall = transferAllLiquid(world, drainPos, pos.down(), true);
 				if(failFall == 0)	//it transferred all the liquid
 				{
 					drainPos = drainPos.down();	//so go down one
-					failFall = transferAllLiquid(world, drainPos, pos.down());	//and this will fill it up the rest of the way
+					failFall = transferAllLiquid(world, drainPos, pos.down(), true);	//and this will fill it up the rest of the way
 				}
+				System.out.println("Failed dropping " + failFall + " liquids below");
 			}
 			
 //			System.out.println("Failed to output " + failFall + " water below");
@@ -762,7 +821,7 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 					highPriority++;
 				}
 				int i=0;
-				int totWater = failFall;
+				int totWater = depth[4];
 				int totBlocks = 1;
 				//initialize everything
 				for (EnumFacing side : EnumFacing.Plane.HORIZONTAL)
@@ -795,6 +854,7 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 							world.setBlockState(trgPos[i],Blocks.obsidian.getDefaultState());
 						else
 							world.setBlockState(trgPos[i],Blocks.cobblestone.getDefaultState());
+						System.out.println("Block changed to obsidian or cobblestone");
 						depth[i]=-1;
 						change[i]=false;
 						totWater--;
@@ -825,10 +885,12 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 				if(!drainPos.equals(pos))
 				{
 					additionaltopWater = getQuantaValue(world, drainPos);
+					System.out.println("****************************Additional top water: " + additionaltopWater);
 					totWater += additionaltopWater;	//add up to 7 blocks
 				}
 				int avgDepth = totWater / totBlocks;
 				int Remainder = totWater % totBlocks;	//how many blocks need to have an additional water added
+				System.out.println("AVGDepth - Remainder - totWater - totBlocks: " + avgDepth + " - " + Remainder + " - " + totWater + " - " + totBlocks);
 				if(avgDepth >= 8)
 				{
 					int extra = totWater - 8 * totBlocks;
@@ -943,6 +1005,7 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 							if(newLvl != depth[i]-1)	//only update water block and look for updates if it changes
 							{
 								world.setBlockState(trgPos[i], state.withProperty(LEVEL, newLvl), 2);
+								System.out.println("Rescheduling adjacent water");
 								world.scheduleUpdate(trgPos[i], this, tickRate);
 							}
 						}
@@ -953,6 +1016,7 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 				}
 				if(additionaltopWater > 0)
 				{
+					System.out.println("Rescheduling top water");
 					removeLiquid(world, drainPos, additionaltopWater);
 					world.scheduleUpdate(drainPos, this, tickRate);
 				}
