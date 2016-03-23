@@ -10,3 +10,5 @@ tile.wetgravel.name=Wet Gravel
 item.wetgravel.name=Wet Gravel
 tile.finiteWater.name=Water
 item.finiteWater.name=Water
+item.finite_water_bucket.name=Water Bucket
+tile.finite_water_bucket.name=Water Bucket

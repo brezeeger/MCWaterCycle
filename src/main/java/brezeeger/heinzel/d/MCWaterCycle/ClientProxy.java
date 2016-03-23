@@ -34,6 +34,7 @@ public class ClientProxy extends CommonProxy{
 		rend.getItemModelMesher().register(Item.getItemFromBlock(MCWaterCycle.WetCobble), 0, new ModelResourceLocation(MCWaterCycle.MODID+":"+((WetBlock)MCWaterCycle.WetCobble).getName(), "inventory"));
 		rend.getItemModelMesher().register(Item.getItemFromBlock(MCWaterCycle.WetGravel), 0, new ModelResourceLocation(MCWaterCycle.MODID+":"+((WetBlock)MCWaterCycle.WetGravel).getName(), "inventory"));
 		rend.getItemModelMesher().register(Item.getItemFromBlock(MCWaterCycle.finiteWater), 0, new ModelResourceLocation(MCWaterCycle.MODID+":"+((FiniteFluid)MCWaterCycle.finiteWater).getName(), "inventory"));
+		rend.getItemModelMesher().register(MCWaterCycle.watBucket, 0, new ModelResourceLocation(MCWaterCycle.MODID+":"+((WaterBucket)MCWaterCycle.watBucket).getName(), "inventory"));
     }
 
 	@Override
