@@ -128,7 +128,9 @@ public class WaterBucket extends ItemBucket {
 			int fail = ((FiniteFluid)MCWaterCycle.finiteWater).addLiquid(world, bpos, 1, false, false);
 			if(fail==0)
 			{
-				world.scheduleUpdate(bpos, MCWaterCycle.finiteWater, MCWaterCycle.finiteWater.tickRate(world));
+				bpos = ((FiniteFluid)MCWaterCycle.finiteWater).getTopLiquid(world, bpos);	//make sure the update tick goes to the correct spot
+				if(bpos != null)
+					world.scheduleUpdate(bpos, MCWaterCycle.finiteWater, MCWaterCycle.finiteWater.tickRate(world));
 //				System.out.println("Added Finite water instead of normal water");
 				return new ItemStack(Items.bucket);
 			}

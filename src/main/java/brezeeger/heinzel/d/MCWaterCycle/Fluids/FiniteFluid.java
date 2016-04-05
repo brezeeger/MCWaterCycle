@@ -242,6 +242,7 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 				world.setBlockState(pos, this.getDefaultState().withProperty(LEVEL, 7+addFalling));
 				amt -= 8;
 			}
+			//this changes the block type, and automatically induces an update to it and neighbors
 		}
 		else if (state.getBlock() == this)
         {
@@ -279,7 +280,6 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 				return (addLiquid(world, pos.up(), amt, falling, preventRise));
 			}
         }
-		
 		else if (state.getBlock() == Blocks.water || state.getBlock() == Blocks.flowing_water)
         {
 			int lvl = 7-((Integer)state.getValue(LEVEL)).intValue();
@@ -319,7 +319,6 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 					return (addLiquid(world, pos.up(), amt, falling, preventRise));
 			}
         }
-		
 		else if(state.getBlock().getMaterial() == Material.lava)
 		{
 			if(((Integer)state.getValue(LEVEL)).intValue() != 0)
@@ -638,10 +637,15 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 		return pos.up(numAbove);
 	}
 
-	private BlockPos getTopFallLiquid(World world, BlockPos pos)
+	public BlockPos getTopLiquid(World world, BlockPos pos)
 	{
-
-		return pos;
+		IBlockState state = world.getBlockState(pos);
+		if(state.getBlock() != this)
+			return null;
+		int ctr=1;
+		while(world.getBlockState(pos.up(ctr)).getBlock() == this)
+			ctr++;
+		return pos.up(ctr-1);
 	}
 
 	//this assumes the pos is a falling liquid block, and the state below is initially air
@@ -930,6 +934,8 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 				trgPos[4] = pos;
 				change[4] = true;
 				priority[4] = false;
+				boolean[] tiePriority = new boolean[5];
+				tiePriority[0] = tiePriority[1] = tiePriority[2] = tiePriority[3] = tiePriority[4] = false;
 				if(world.getBlockState(pos.down()).getBlock() == this || canDisplace(world, pos.down()))
 				{
 					priority[4] = true;
@@ -1046,12 +1052,15 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 				int maxDepth;
 				int index;
 				
-
+				//there is a more water than priority spots
+				System.out.println("numExtra: "+numExtra);
 				while(numExtra > 0)
 				{
 					//find the blocks with the highest depth that aren't in priority array
 					maxDepth = 0;
 					index = -1;
+					int tiectr = 0;
+					tiePriority[0] = tiePriority[1] = tiePriority[2] = tiePriority[3] = tiePriority[4] = false;
 					for(i=0; i<5; i++)
 					{
 						if(!change[i] || priority[i])	//is this block valid, and does it already have priority?
@@ -1061,8 +1070,54 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 						{
 							maxDepth = depth[i];
 							index = i;
+							tiePriority[0] = tiePriority[1] = tiePriority[2] = tiePriority[3] = tiePriority[4] = false;
+							tiePriority[i] = true;
+							tiectr=1;
+						}
+						else if(depth[i] == maxDepth)
+						{
+							tiectr++;
+							tiePriority[i]=true;
 						}
 					}
+					if(tiectr <= numExtra)	//do all of them that tied
+					{
+						for(i=0; i<5; ++i)
+						{
+							if(tiePriority[i]==true)
+							{
+								priority[i]=true;
+							}
+						}
+						numExtra -= tiectr;
+					}
+					else //choose up to numExtra at random, there are more tiectr's than numExtra
+					{
+						for(int j=0; j<numExtra; ++j)
+						{
+							int whichpriority = rand.nextInt(tiectr);	//[0,tiectr) random integer
+							int howmany=0;
+							for(i=0;i<5;i++)
+							{
+								if(tiePriority[i]==true)
+								{
+									if(howmany==whichpriority)
+									{
+										priority[i] = true;
+										tiectr--;
+										tiePriority[i]=false;
+										break;
+									}
+									else
+									{
+										howmany++;
+									}
+								}
+							}
+						}
+						numExtra = 0;
+					}
+/*
 					if(index != -1)
 					{
 						priority[index] = true;
@@ -1081,8 +1136,11 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 								break;
 						}
 					}
+*/
 				}
 				
+
+				//there is more priority spots than there is water
 				if(numExtra < 0)
 				{
 					int[] hpindices;
@@ -1101,6 +1159,8 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 					{
 						int smallest = 9;
 						int remove=-1;
+						int tiectr = 0;
+						tiePriority[0] = tiePriority[1] = tiePriority[2] = tiePriority[3] = tiePriority[4] = false;
 						for(i=0;i<highPriority;i++)
 						{
 							if(hpindices[i] < 5)
@@ -1109,9 +1169,70 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 								{
 									remove=i;
 									smallest = depth[hpindices[i]];
+									tiePriority[0] = tiePriority[1] = tiePriority[2] = tiePriority[3] = tiePriority[4] = false;
+									tiePriority[hpindices[i]] = true;
+									tiectr=-1;
+								}
+								else if(depth[hpindices[i]] == smallest)
+								{
+									tiectr--;
+									tiePriority[hpindices[i]] = true;
 								}
 							}
 						}
+						
+						//if there is a tie between multiple entries as to what to remove priority from
+						//make sure the source entry is last
+						if(tiectr < -1 && tiePriority[4] == true)
+						{
+							tiectr++;
+							tiePriority[4] = false;
+						}
+
+						//there are more places to remove the depth from than necessary
+						if(tiectr < numExtra)	// |tiectr| > |numExtra|
+						{
+							for(int k=0; k>numExtra; --k)
+							{
+								int whichpriority = rand.nextInt(-tiectr);	//[0,tiectr) random integer
+								int howmany=0;
+								for(i=0;i<5;i++)
+								{
+									if(tiePriority[i]==true)
+									{
+										if(howmany==whichpriority)
+										{
+											priority[i] = false;
+											tiectr++;
+											tiePriority[i]=false;
+											break;
+										}
+										else
+										{
+											howmany++;
+										}
+									}
+								}
+							}
+							numExtra = 0;
+						}
+						else if(tiectr >= numExtra)	//it needs to remove all the tiectrs
+						{
+							for(i=0; i<highPriority; ++i)
+							{
+								if(hpindices[i] < 5)
+								{
+									if(tiePriority[hpindices[i]]==true)
+									{
+										priority[hpindices[i]] = false;
+										hpindices[i] = 5;
+									}
+								}
+							}
+							numExtra -= tiectr;	//-4 - -2 = -2
+						}
+
+						/*
 						if(remove != -1)
 						{
 							priority[hpindices[remove]] = false;
@@ -1124,6 +1245,7 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 							numExtra=0;
 						}
 						numExtra++;
+			*/
 					}
 
 				}
