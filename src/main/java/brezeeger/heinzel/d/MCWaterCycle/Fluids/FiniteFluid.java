@@ -82,7 +82,7 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 		if(capacity > 8 || capacity < 1)	//default to relatively standard behavior
 			capacity = 8;
 		this.capacity = capacity;
-		this.setLightOpacity(10);
+		this.setLightOpacity(1);	//10
 		stack = new FluidStack(flu, capacity * FluidContainerRegistry.BUCKET_VOLUME / 8);	//just for easy reference! (8 from 8 levels of water to render)
 		setUnlocalizedName(nm);
 		setCreativeTab(CreativeTabs.tabBlock);
@@ -187,9 +187,9 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 			while(lvl>=0)
 			{
 				if(lvl < 8)
-					world.setBlockState(pos.add(0,above,0), this.getDefaultState().withProperty(LEVEL, lvl));	//rough work for now...
+					world.setBlockState(pos.add(0,above,0), this.getDefaultState().withProperty(LEVEL, lvl),2);	//rough work for now...
 				else
-					world.setBlockState(pos.add(0,above,0), this.getDefaultState().withProperty(LEVEL, 7));
+					world.setBlockState(pos.add(0,above,0), this.getDefaultState().withProperty(LEVEL, 7),2);
 				lvl -= 8;
 				above++;
 			}
@@ -205,9 +205,9 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 			while(lvl>=0)
 			{
 				if(lvl < 8)
-					world.setBlockState(pos.add(0,above,0), this.getDefaultState().withProperty(LEVEL, lvl));	//rough work for now...
+					world.setBlockState(pos.add(0,above,0), this.getDefaultState().withProperty(LEVEL, lvl),2);	//rough work for now...
 				else
-					world.setBlockState(pos.add(0,above,0), this.getDefaultState().withProperty(LEVEL, 7));
+					world.setBlockState(pos.add(0,above,0), this.getDefaultState().withProperty(LEVEL, 7),2);
 				lvl -= 8;
 				above++;
 			}
@@ -228,18 +228,21 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 			amt = -removeLiquid(world, pos, -amt);
 			return(amt);
 		}
+		if(canDisplace(world, pos.down()))
+			falling = true;
+
 		int addFalling = falling ? 8:0;
 		IBlockState state = world.getBlockState(pos);
 		if(state.getBlock().isAir(world,pos))
 		{
 			if(amt < 8)
 			{
-				world.setBlockState(pos, this.getDefaultState().withProperty(LEVEL, amt-1+addFalling));	//rough work for now...
+				world.setBlockState(pos, this.getDefaultState().withProperty(LEVEL, amt-1+addFalling),2);	//rough work for now...
 				amt=0;
 			}
 			else
 			{
-				world.setBlockState(pos, this.getDefaultState().withProperty(LEVEL, 7+addFalling));
+				world.setBlockState(pos, this.getDefaultState().withProperty(LEVEL, 7+addFalling),2);
 				amt -= 8;
 			}
 			//this changes the block type, and automatically induces an update to it and neighbors
@@ -252,12 +255,12 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 				int newTot = lvl + amt;
 				if(newTot > 15)
 				{
-					world.setBlockState(pos, this.getDefaultState().withProperty(LEVEL, 15));
+					world.setBlockState(pos, this.getDefaultState().withProperty(LEVEL, 15),2);
 					amt = newTot - 15;
 				}
 				else
 				{
-					world.setBlockState(pos, this.getDefaultState().withProperty(LEVEL, newTot));
+					world.setBlockState(pos, this.getDefaultState().withProperty(LEVEL, newTot),2);
 					amt = 0;	//none left over
 				}
 			}
@@ -266,12 +269,12 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 				int newTot = lvl + amt;
 				if(newTot > 7)
 				{
-					world.setBlockState(pos, this.getDefaultState().withProperty(LEVEL, 7+addFalling));
+					world.setBlockState(pos, this.getDefaultState().withProperty(LEVEL, 7+addFalling),2);
 					amt = newTot - 7;
 				}
 				else
 				{
-					world.setBlockState(pos, this.getDefaultState().withProperty(LEVEL, newTot+addFalling));
+					world.setBlockState(pos, this.getDefaultState().withProperty(LEVEL, newTot+addFalling),2);
 					amt = 0;	//none left over
 				}
 			}
@@ -289,12 +292,12 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 				int newTot = lvl + amt;
 				if(newTot > 15)
 				{
-					world.setBlockState(pos, this.getDefaultState().withProperty(LEVEL, 15));
+					world.setBlockState(pos, this.getDefaultState().withProperty(LEVEL, 15),2);
 					amt = newTot - 15;
 				}
 				else
 				{
-					world.setBlockState(pos, this.getDefaultState().withProperty(LEVEL, newTot));
+					world.setBlockState(pos, this.getDefaultState().withProperty(LEVEL, newTot),2);
 					amt = 0;	//none left over
 				}
 			}
@@ -303,18 +306,18 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 				int newTot = lvl + amt;
 				if(newTot > 7)
 				{
-					world.setBlockState(pos, this.getDefaultState().withProperty(LEVEL, 7+addFalling));
+					world.setBlockState(pos, this.getDefaultState().withProperty(LEVEL, 7+addFalling),2);
 					amt = newTot - 7;
 				}
 				else
 				{
-					world.setBlockState(pos, this.getDefaultState().withProperty(LEVEL, newTot+addFalling));
+					world.setBlockState(pos, this.getDefaultState().withProperty(LEVEL, newTot+addFalling),2);
 					amt = 0;	//none left over
 				}
 			}
 			else if(lvl == 7)
 			{
-				world.setBlockState(pos, this.getDefaultState().withProperty(LEVEL, 7));
+				world.setBlockState(pos, this.getDefaultState().withProperty(LEVEL, 7),2);
 				if(!preventRise)
 					return (addLiquid(world, pos.up(), amt, falling, preventRise));
 			}
@@ -322,9 +325,9 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 		else if(state.getBlock().getMaterial() == Material.lava)
 		{
 			if(((Integer)state.getValue(LEVEL)).intValue() != 0)
-				world.setBlockState(pos,Blocks.cobblestone.getDefaultState());
+				world.setBlockState(pos,Blocks.cobblestone.getDefaultState(),2);
 			else
-				world.setBlockState(pos,Blocks.obsidian.getDefaultState());
+				world.setBlockState(pos,Blocks.obsidian.getDefaultState(),2);
 			
 			amt--;
 		}
@@ -332,12 +335,12 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
         {
 			if(amt < 8)
 			{
-				world.setBlockState(pos, this.getDefaultState().withProperty(LEVEL, amt-1+addFalling));	//rough work for now...
+				world.setBlockState(pos, this.getDefaultState().withProperty(LEVEL, amt-1+addFalling),2);	//rough work for now...
 				amt=0;
 			}
 			else
 			{
-				world.setBlockState(pos, this.getDefaultState().withProperty(LEVEL, 7+addFalling));
+				world.setBlockState(pos, this.getDefaultState().withProperty(LEVEL, 7+addFalling),2);
 				amt -= 8;
 			}
 		}
@@ -613,7 +616,7 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 		int numAbove = 0;
 //		boolean isOcean = (world.getChunkFromBlockCoords(pos).getBiome(pos, world.getWorldChunkManager()) instanceof BiomeGenOcean);
 		
-		if(((Integer)srcState.getValue(LEVEL)).intValue() == 7)	//this is a non-falling full water block, so there might be water above it!
+		if(((Integer)srcState.getValue(LEVEL)).intValue() <= 7)	//this is a non-falling full water block, so there might be water above it!
 		{	
 			IBlockState trgState;
 			do
@@ -626,7 +629,7 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 					break;
 				}
 				int lvl = ((Integer)trgState.getValue(LEVEL)).intValue();
-				if(lvl!=7)	//if it is not a completely full block, and moving downwards doesn't count!
+				if(lvl>7)	//if it is not a completely full block, and moving downwards doesn't count!
 					break;
 			}while(trgState.getBlock()==this);	//it should always break before this...
 			
@@ -795,7 +798,6 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 	public void updateTick(World world, BlockPos pos, IBlockState state, Random rand)
 	{
 		//because it is an Override, we know the state
-		//to test behavior, just make it evaporate
 		state = world.getBlockState(pos);	//make sure it's the correct state...
 		
 		if(state.getBlock() != this)
