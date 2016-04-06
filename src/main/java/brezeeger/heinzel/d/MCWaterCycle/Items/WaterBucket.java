@@ -130,8 +130,12 @@ public class WaterBucket extends ItemBucket {
 			{
 				bpos = ((FiniteFluid)MCWaterCycle.finiteWater).getTopLiquid(world, bpos);	//make sure the update tick goes to the correct spot
 				if(bpos != null)
+				{
 					world.scheduleUpdate(bpos, MCWaterCycle.finiteWater, MCWaterCycle.finiteWater.tickRate(world));
-//				System.out.println("Added Finite water instead of normal water");
+					System.out.println("Added Finite water instead of normal water with tick rate: "+MCWaterCycle.finiteWater.tickRate(world)+ " --- at: "+
+					+ bpos.getX() + " " + bpos.getY() + " " + bpos.getZ());
+				}
+				
 				return new ItemStack(Items.bucket);
 			}
 			else

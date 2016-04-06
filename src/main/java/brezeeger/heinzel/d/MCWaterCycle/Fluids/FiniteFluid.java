@@ -507,7 +507,7 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 			maxReceive = 7 - ((Integer)(trgState.getValue(LEVEL))).intValue();
 		else if(world.getBlockState(target).getBlock().getMaterial() == Material.lava)
 			maxReceive = 1;
-		else if(world.getBlockState(target).getBlock() == Blocks.water)
+		else if(world.getBlockState(target).getBlock() == Blocks.water || world.getBlockState(target).getBlock() == Blocks.flowing_water)
 			maxReceive = 0;	//don't let it steal this over yet. It's already full. Just let it be. Prevent any crazy propagation
 		else if(canDisplace(world, target)==false)
 			maxReceive = 0;
@@ -595,7 +595,8 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 
 	public boolean isInfiniteSourceWater(World world, BlockPos pos)
 	{
-		if(world.getBlockState(pos).getBlock() != this)	//will need to be updated to be just the water finite fluid later.
+		Block blk = world.getBlockState(pos).getBlock();
+		if(blk != this  && blk != Blocks.water && blk != Blocks.flowing_water)	//will need to be updated to be just the water finite fluid later.
 			return false;
 
 		if(this != MCWaterCycle.finiteWater)
@@ -765,6 +766,11 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 	private boolean isFullLiquid(World world, BlockPos pos)
 	{
 		IBlockState state = world.getBlockState(pos);
+		if(state.getBlock() == Blocks.water || state.getBlock() == Blocks.flowing_water)
+		{
+			if(((Integer)state.getValue(LEVEL)).intValue()==0)	//full water block
+				return true;
+		}
 		if(state.getBlock() != this)
 			return false;
 		if(((Integer)state.getValue(LEVEL)).intValue()==7)
@@ -775,7 +781,7 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 	private boolean ignoreOceanTick(World world, BlockPos pos)
 	{
 		boolean isOcean = (world.getChunkFromBlockCoords(pos).getBiome(pos, world.getWorldChunkManager()) instanceof BiomeGenOcean);
-		if(pos.getY() <= SEALEVEL)
+		if(isOcean && pos.getY() <= SEALEVEL)
 		{
 			if(!isFullLiquid(world, pos))
 				return false;
@@ -791,7 +797,7 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 				return false;
 		}
 
-		return true;
+		return isOcean;
 	}
 
 	@Override
@@ -800,12 +806,15 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 		//because it is an Override, we know the state
 		state = world.getBlockState(pos);	//make sure it's the correct state...
 		
+
 		if(state.getBlock() != this)
 			return;
 
 		if(ignoreOceanTick(world, pos))	//all adjacent (except above) water below sea level is full source blocks. do nothing with it.
+		{
+			System.out.println("Ignoring ocean tick: " + pos.getX() + " " + pos.getY() + " " + pos.getZ());
 			return;
-
+		}
 		System.out.println("Processing water in tick: " + pos.getX() + " " + pos.getY() + " " + pos.getZ());
 
 		int lvl = ((Integer)state.getValue(LEVEL)).intValue();
@@ -987,6 +996,7 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 						totBlocks++;
 						if(world.getBlockState(trgPos[i].down()).getBlock() == this ||
 							world.getBlockState(trgPos[i].down()).getBlock() == Blocks.water ||
+							world.getBlockState(trgPos[i].down()).getBlock() == Blocks.flowing_water ||
 							canDisplace(world, trgPos[i].down()))
 						{
 							priority[i] = true;
