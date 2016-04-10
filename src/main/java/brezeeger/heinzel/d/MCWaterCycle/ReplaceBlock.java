@@ -38,8 +38,10 @@ public class ReplaceBlock implements IWorldGenerator {
 		//0 is main world, 1 is end, -1 is nether
 		if(world.provider.getDimensionId() == 0)
 		{
-		/*
-			Go this route if directlym odifying the chunk does not work!
+		
+//			Go this route if directly modifying the chunk does not work!
+//This works, but it causes block updates on all the blocks.
+/*
 			int baseX = chunkX * 16;
 			int baseZ = chunkZ * 16;
 			for (int x = baseX; x < baseX+16; ++x) 
@@ -51,13 +53,17 @@ public class ReplaceBlock implements IWorldGenerator {
 						BlockPos pos = new BlockPos(x,y,z);
 						if (world.getBlockState(pos).getBlock() == srcBlock)
 						{
-							world.setBlockState(pos, trgBlock.getDefaultState(), 2);	//change block, but don't update neighbors!
+							world.setBlockState(pos, trgBlock.getDefaultState(), 0);	//change block, but don't update neighbors. Don't mark block as updated either!
+							//does not prevent bad things from happening
 						}
 					}
 				}
 			}
-			*/
-			System.out.println("Replacing water in chunk: "+chunkX+", "+chunkZ);
+*/			
+//			System.out.println("Replacing water in chunk: "+chunkX+", "+chunkZ);
+
+//This works, but it causes sand/gravel to fall and is a disaster!
+
 			Chunk chunk = chunkProvider.provideChunk(chunkX, chunkZ);
 			boolean modified = false;
 			for (ExtendedBlockStorage storage : chunk.getBlockStorageArray()) 
@@ -82,6 +88,8 @@ public class ReplaceBlock implements IWorldGenerator {
 			}
 			if(modified)
 				chunk.setChunkModified(); 
+				
+				
 		}	//end it is the main world
 	}	//end generate function
 }

@@ -602,8 +602,11 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 			return false;
 
 		boolean isOcean = (world.getChunkFromBlockCoords(pos).getBiome(pos, world.getWorldChunkManager()) instanceof BiomeGenOcean);
-		if(pos.getY()==SEALEVEL && isOcean)
+		boolean isRiver = (world.getChunkFromBlockCoords(pos).getBiome(pos, world.getWorldChunkManager()) instanceof BiomeGenRiver);
+		if(pos.getY()==SEALEVEL && (isOcean || isRiver))
 			return true;
+
+		
 		return false;
 	}
 
@@ -959,11 +962,15 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 				int i=0;
 				int totWater = depth[4];
 				int totBlocks = 1;
+				boolean infSource = isInfiniteSourceWater(world, trgPos[4]);
 				//initialize everything
+				
 				for (EnumFacing side : EnumFacing.Plane.HORIZONTAL)
 				{
 					trgPos[i] = pos.offset(side);
 					priority[i] = false;
+					if(isInfiniteSourceWater(world, trgPos[i]))
+						infSource = true;
 					if(world.getBlockState(trgPos[i]).getBlock()==this)
 					{
 						depth[i] = ((Integer)world.getBlockState(trgPos[i]).getValue(LEVEL)).intValue()+1;
@@ -1051,6 +1058,13 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 //					System.out.println("****************************Additional top water: " + additionaltopWater);
 					totWater += additionaltopWater;	//add up to 7 blocks
 				}
+				if(infSource)
+				{
+					additionaltopWater =0;
+					drainPos = pos;
+					totWater = totBlocks * 8;	//avgDepth = 8, Remainder = 0;
+				}
+
 				int avgDepth = totWater / totBlocks;
 				int Remainder = totWater % totBlocks;	//how many blocks need to have an additional water added
 //				System.out.println("AVGDepth - Remainder - totWater - totBlocks: " + avgDepth + " - " + Remainder + " - " + totWater + " - " + totBlocks);
