@@ -89,7 +89,7 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 		setUnlocalizedName(nm);
 		setCreativeTab(CreativeTabs.tabBlock);
 		GameRegistry.registerBlock(this, nm);	//add the block to the registry
-//		this.setDefaultState(this.blockState.getBaseState().withProperty(LEVEL, 7));	//default to a full block! This already happens because of finite fluid
+		this.setDefaultState(this.blockState.getBaseState().withProperty(LEVEL, 7));
 		//testing with a full block
 	}
 
