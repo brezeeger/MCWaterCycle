@@ -19,6 +19,7 @@ import brezeeger.heinzel.d.MCWaterCycle.Blocks.WetBlock;
 import brezeeger.heinzel.d.MCWaterCycle.MCWaterCycle;
 import brezeeger.heinzel.d.MCWaterCycle.Fluids.FiniteFluid;
 import brezeeger.heinzel.d.MCWaterCycle.ReplaceBlock;
+import brezeeger.heinzel.d.MCWaterCycle.ContainFiniteFluid;
 
 
 public class CommonProxy {
@@ -43,6 +44,7 @@ public class CommonProxy {
 
 //		MinecraftForge.EVENT_BUS.register(new ReplaceWater());	this is still REALLY slow
 		GameRegistry.registerWorldGenerator(new ReplaceBlock(Blocks.water, MCWaterCycle.finiteWater), 1024);	//make this one of the last things done!
+		GameRegistry.registerWorldGenerator(new ContainFiniteFluid(MCWaterCycle.finiteWater, Blocks.stone), 1025);	//contain the finite fluid right after it has been made!
 		MinecraftForge.EVENT_BUS.register(MCWaterCycle.watBucket);	//need a bucket instance just to steal all bucket events
 		
     }

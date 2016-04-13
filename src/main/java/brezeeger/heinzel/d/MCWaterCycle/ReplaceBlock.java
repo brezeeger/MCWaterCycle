@@ -62,7 +62,6 @@ public class ReplaceBlock implements IWorldGenerator {
 */			
 //			System.out.println("Replacing water in chunk: "+chunkX+", "+chunkZ);
 
-//This works, but it causes sand/gravel to fall and is a disaster!
 
 			Chunk chunk = chunkProvider.provideChunk(chunkX, chunkZ);
 			boolean modified = false;
