@@ -53,6 +53,8 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 
 	protected final static int SEALEVEL=62;
 
+	protected static long time;
+
 //	protected TextureAtlasSprite IconStill;
 //	protected TextureAtlasSprite IconFlow;
 
@@ -812,12 +814,22 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 		if(state.getBlock() != this)
 			return;
 
+		long tmpTime = world.getWorldTime();
 		if(ignoreOceanTick(world, pos))	//all adjacent (except above) water below sea level is full source blocks. do nothing with it.
 		{
-			System.out.println("Ignoring ocean tick: " + pos.getX() + " " + pos.getY() + " " + pos.getZ());
+			if(time != tmpTime)	//only display one message per tick!
+			{
+				System.out.println("Ignoring ocean tick: " + pos.getX() + " " + pos.getY() + " " + pos.getZ());
+				time = tmpTime;
+			}
 			return;
 		}
-		System.out.println("Processing water in tick: " + pos.getX() + " " + pos.getY() + " " + pos.getZ());
+		
+		if(time != tmpTime)	//only display one message per tick!
+		{
+			System.out.println("Processing water in tick: " + pos.getX() + " " + pos.getY() + " " + pos.getZ());
+			time = tmpTime;
+		}
 
 		int lvl = ((Integer)state.getValue(LEVEL)).intValue();
 		if(canAcceptLiquid(world, pos.down()))	//should this actually be falling?
@@ -994,7 +1006,8 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 					else if(world.getBlockState(trgPos[i]).getBlock()==Blocks.water || world.getBlockState(trgPos[i]).getBlock()==Blocks.flowing_water)
 					{
 						depth[i] = (((Integer)world.getBlockState(trgPos[i]).getValue(LEVEL)).intValue() == 0) ? 8:0;
-						System.out.println(world.getBlockState(trgPos[i]).getBlock().getUnlocalizedName() + " has state: "+((Integer)world.getBlockState(trgPos[i]).getValue(LEVEL)).intValue());
+						System.out.println(world.getBlockState(trgPos[i]).getBlock().getUnlocalizedName() + " has state: "+((Integer)world.getBlockState(trgPos[i]).getValue(LEVEL)).intValue()+ " at (x,y,z) "
+							+ trgPos[i].getX()+", "+trgPos[i].getY()+", "+trgPos[i].getZ());
 						//it's either a full block, or it acts like it has nothing!
 //						depth[i] = 8 - ((Integer)world.getBlockState(pos).getValue(LEVEL)).intValue();
 				//		depth[i] = ((Integer)world.getBlockState(trgPos[i]).getValue(LEVEL)).intValue()+1;

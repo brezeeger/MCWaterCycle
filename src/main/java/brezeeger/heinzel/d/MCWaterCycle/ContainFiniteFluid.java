@@ -56,7 +56,7 @@ public class ContainFiniteFluid implements IWorldGenerator {
 		if (miniChunk.getBlockByExtId(x, y, z) == fluidBlock)	//getBlockByExtId cannot ever be null, so this will fail if improperly fluid passed in!
 		{
 			//test above
-			if(y+1>15)	//it's in the above mini chunk
+			if(y>=15)	//it's in the above mini chunk
 			{
 				if(mchunkPY != null)	//there is no above mini chunk
 				{
@@ -68,6 +68,10 @@ public class ContainFiniteFluid implements IWorldGenerator {
 							flags = ((char)(flags | BLOCKPY));
 					}
 					
+				}
+				else
+				{
+//					System.out.println("Error, y+1>15 but no upper chunk!");
 				}
 			}
 			else
@@ -91,6 +95,10 @@ public class ContainFiniteFluid implements IWorldGenerator {
 							flags = ((char)(flags | BLOCKNY));
 					}
 					
+				}
+				else
+				{
+//					System.out.println("Error, y<0 but no lower chunk!");
 				}
 			}
 			else
@@ -116,6 +124,10 @@ public class ContainFiniteFluid implements IWorldGenerator {
 					}
 					
 				}
+				else
+				{
+		//			System.out.println("Error, x>=15 but no chunk!");
+				}
 			}
 			else
 			{
@@ -138,6 +150,10 @@ public class ContainFiniteFluid implements IWorldGenerator {
 							flags = ((char)(flags | BLOCKNX));
 					}
 					
+				}
+				else
+				{
+		//			System.out.println("Error, x<=0 but no chunk!");
 				}
 			}
 			else
@@ -163,6 +179,10 @@ public class ContainFiniteFluid implements IWorldGenerator {
 					}
 					
 				}
+				else
+				{
+		//			System.out.println("Error, z>=15 but no chunk!");
+				}
 			}
 			else
 			{
@@ -186,6 +206,10 @@ public class ContainFiniteFluid implements IWorldGenerator {
 					}
 					
 				}
+				else
+				{
+		//			System.out.println("Error, z<=0 but no chunk!");
+				}
 			}
 			else
 			{
@@ -202,17 +226,29 @@ public class ContainFiniteFluid implements IWorldGenerator {
 			if((flags & BLOCKNZ) != 0)
 			{
 				if(mchunkNZ != null)
+				{
 					mchunkNZ.set(x, y, 15, containBlock.getDefaultState());
+//					System.out.println("Block replaced (X,Y,Z): ("+(chunkX*16+x)+","+(miniChunk.getYLocation()+y)+","+(chunkZ*16+z-1)+")");
+				}
 				else if(z>0)	//need to include in case z=0. but nchunkNZ is null because the chunk hasn't been generated yet!
+				{
 					miniChunk.set(x,y,z-1, containBlock.getDefaultState());
+//					System.out.println("Block replaced (X,Y,Z): ("+(chunkX*16+x)+","+(miniChunk.getYLocation()+y)+","+(chunkZ*16+z-1)+")");
+				}
 			}
 
 			if((flags & BLOCKPZ) != 0)
 			{
 				if(mchunkPZ != null)
+				{
 					mchunkPZ.set(x, y, 0, containBlock.getDefaultState());
+//					System.out.println("Block replaced (X,Y,Z): ("+(chunkX*16+x)+","+(miniChunk.getYLocation()+y)+","+(chunkZ*16+z+1)+")");
+				}
 				else if(z<15)
+				{
 					miniChunk.set(x,y,z+1, containBlock.getDefaultState());
+//					System.out.println("Block replaced (X,Y,Z): ("+(chunkX*16+x)+","+(miniChunk.getYLocation()+y)+","+(chunkZ*16+z+1)+")");
+				}
 			}
 
 
@@ -221,26 +257,49 @@ public class ContainFiniteFluid implements IWorldGenerator {
 			if((flags & BLOCKNX) != 0)
 			{
 				if(mchunkNX != null)
+				{
 					mchunkNX.set(15, y, z, containBlock.getDefaultState());
+//					System.out.println("Block replaced (X,Y,Z): ("+(chunkX*16+x-1)+","+(miniChunk.getYLocation()+y)+","+(chunkZ*16+z)+")");
+				}
 				else if(x>0)
+				{
 					miniChunk.set(x-1,y,z, containBlock.getDefaultState());
+//					System.out.println("Block replaced (X,Y,Z): ("+(chunkX*16+x-1)+","+(miniChunk.getYLocation()+y)+","+(chunkZ*16+z)+")");
+				}
 			}
 
 			if((flags & BLOCKPX) != 0)
 			{
 				if(mchunkPX != null)
+				{
 					mchunkPX.set(0, y, z, containBlock.getDefaultState());
+//					System.out.println("Block replaced (X,Y,Z): ("+(chunkX*16+x+1)+","+(miniChunk.getYLocation()+y)+","+(chunkZ*16+z)+")");
+				}
 				else if(x<15)
+				{
 					miniChunk.set(x+1,y,z, containBlock.getDefaultState());
+//					System.out.println("Block replaced (X,Y,Z): ("+(chunkX*16+x+1)+","+(miniChunk.getYLocation()+y)+","+(chunkZ*16+z)+")");
+				}
 			}
 
 			if((flags & BLOCKNY) != 0)
 			{
 				if(mchunkNY != null)
+				{
 					mchunkNY.set(x, 15, z, containBlock.getDefaultState());
+//					System.out.println("Block replaced (X,Y,Z): ("+(chunkX*16+x)+","+(miniChunk.getYLocation()+y-1)+","+(chunkZ*16+z)+")");
+				}
 				else if(y>0)
+				{
 					miniChunk.set(x,y-1,z, containBlock.getDefaultState());
+//					System.out.println("Block replaced (X,Y,Z): ("+(chunkX*16+x)+","+(miniChunk.getYLocation()+y-1)+","+(chunkZ*16+z)+")");
+				}
 			}
+		//	if((flags & BLOCKADDED) != 0)
+	//		{
+//				System.out.println("Block replaced in chunk: ("+chunkX+","+chunkZ+") at y: "+miniChunk.getYLocation());
+				
+//			}
 
 		}
 
@@ -251,18 +310,29 @@ public class ContainFiniteFluid implements IWorldGenerator {
 	@Override
 	public void generate(Random random, int chunkX, int chunkZ, World world, IChunkProvider chunkGenerator, IChunkProvider chunkProvider)
 	{
-
+//		System.out.println("Checking chunk: ("+chunkX+","+chunkZ+")");
 		Chunk chunk = chunkProvider.provideChunk(chunkX, chunkZ);	//only guaranteed one!
 		Chunk chunkPX = null;	//these might not have been loaded yet! If you cause them to load by doing provide chunk
 		Chunk chunkNX = null;	//it will keep generating chunks indefinitely! Not cool!
 		Chunk chunkPZ = null;
 		Chunk chunkNZ = null;
+
+		Chunk chunkPXPZ = null;	//these might not have been loaded yet! If you cause them to load by doing provide chunk
+		Chunk chunkPXNZ = null;	//it will keep generating chunks indefinitely! Not cool!
+		Chunk chunkNXPZ = null;
+		Chunk chunkNXNZ = null;
 		ExtendedBlockStorage mChunkPX = null;
 		ExtendedBlockStorage mChunkNX = null;
 		ExtendedBlockStorage mChunkPZ = null;
 		ExtendedBlockStorage mChunkNZ = null;
 		ExtendedBlockStorage mChunkNY = null;
 		ExtendedBlockStorage mChunkPY = null;
+
+		ExtendedBlockStorage mChunkPXPZ = null;	//these might not have been loaded yet! If you cause them to load by doing provide chunk
+		ExtendedBlockStorage mChunkPXNZ = null;	//it will keep generating chunks indefinitely! Not cool!
+		ExtendedBlockStorage mChunkNXPZ = null;
+		ExtendedBlockStorage mChunkNXNZ = null;
+		ExtendedBlockStorage mChunkADJNY = null;
 
 		if(chunkProvider.chunkExists(chunkX+1,chunkZ))
 			chunkPX = chunkProvider.provideChunk(chunkX+1,chunkZ);
@@ -275,6 +345,20 @@ public class ContainFiniteFluid implements IWorldGenerator {
 
 		if(chunkProvider.chunkExists(chunkX+1,chunkZ))
 			chunkNZ = chunkProvider.provideChunk(chunkX,chunkZ-1);
+
+
+
+		if(chunkProvider.chunkExists(chunkX+1,chunkZ+1))
+			chunkPXPZ = chunkProvider.provideChunk(chunkX+1,chunkZ+1);
+
+		if(chunkProvider.chunkExists(chunkX-1,chunkZ+1))
+			chunkNXPZ = chunkProvider.provideChunk(chunkX-1,chunkZ+1);
+
+		if(chunkProvider.chunkExists(chunkX+1,chunkZ-1))
+			chunkPXNZ = chunkProvider.provideChunk(chunkX+1,chunkZ-1);
+
+		if(chunkProvider.chunkExists(chunkX-1,chunkZ-1))
+			chunkNXNZ = chunkProvider.provideChunk(chunkX-1,chunkZ-1);
 
 		boolean modified = false;
 		ExtendedBlockStorage[] allStorage = chunk.getBlockStorageArray();
@@ -299,9 +383,29 @@ public class ContainFiniteFluid implements IWorldGenerator {
 						for (int z = 0; z < 16; ++z) 
 						{
 							if(z==0 && chunkNZ != null)
+							{
 								mChunkNZ = chunkNZ.getBlockStorageArray()[i];
+								if(x==0 && chunkNXNZ != null)
+								{
+									mChunkNXNZ = chunkNXNZ.getBlockStorageArray()[i];
+								}
+								else if(x==15 && chunkPXNZ != null)
+								{
+									mChunkPXNZ = chunkPXNZ.getBlockStorageArray()[i];
+								}
+							}
 							if(z==15 && chunkPZ != null)
+							{
 								mChunkPZ = chunkPZ.getBlockStorageArray()[i];
+								if(x==0 && chunkNXPZ != null)
+								{
+									mChunkNXPZ = chunkNXPZ.getBlockStorageArray()[i];
+								}
+								else if(x==15 && chunkPXPZ != null)
+								{
+									mChunkPXPZ = chunkPXPZ.getBlockStorageArray()[i];
+								}
+							}
 
 							flags = containBlock(x, y, z, allStorage[i],  mChunkPX,  mChunkNX, mChunkPZ,  mChunkNZ,  mChunkPY,  mChunkNY, world, chunkX, chunkZ);
 
@@ -312,36 +416,60 @@ public class ContainFiniteFluid implements IWorldGenerator {
 							
 							if(mChunkPX != null)	//then x was 15
 							{
-								flags = containBlock(0, y, z, mChunkPX,  null,  allStorage[i], null,  null,  null,  null, world, chunkX, chunkZ);
+								mChunkADJNY = (i>0) ? chunkPX.getBlockStorageArray()[i-1] : null;
+
+								flags = containBlock(0, y, z, mChunkPX,  null,  allStorage[i], mChunkPXPZ,  mChunkPXNZ,  null,  mChunkADJNY, world, chunkX, chunkZ);
 								if((flags & ADJ_WATER) != 0 && (flags & BLOCKADDED) != 0)
 									modified = true;
 							}	
 
 							if(mChunkNX != null)	//then x was 0
 							{
-								flags = containBlock(15, y, z, mChunkNX, allStorage[i], null, null,  null,  null,  null, world, chunkX, chunkZ);
+								mChunkADJNY = (i>0) ? chunkNX.getBlockStorageArray()[i-1] : null;
+								flags = containBlock(15, y, z, mChunkNX, allStorage[i], null, mChunkNXPZ,  mChunkNXNZ,  null,  mChunkADJNY, world, chunkX, chunkZ);
 								if((flags & ADJ_WATER) != 0 && (flags & BLOCKADDED) != 0)
 									modified = true;
 							}
 
 							if(mChunkPZ != null)	//then z was 15
 							{
-								flags = containBlock(x, y, 0, mChunkPZ,  null,  null,  null, allStorage[i], null,  null, world, chunkX, chunkZ);
+								mChunkADJNY = (i>0) ? chunkPZ.getBlockStorageArray()[i-1] : null;
+								flags = containBlock(x, y, 0, mChunkPZ,  mChunkPXPZ,  mChunkNXPZ,  null, allStorage[i], null,  mChunkADJNY, world, chunkX, chunkZ);
 								if((flags & ADJ_WATER) != 0 && (flags & BLOCKADDED) != 0)
 									modified = true;
 							}	
 
 							if(mChunkNZ != null)	//then z was 0
 							{
-								flags = containBlock(x, y, 15, mChunkNZ, null, null, allStorage[i], null,  null,  null, world, chunkX, chunkZ);
+								mChunkADJNY = (i>0) ? chunkNZ.getBlockStorageArray()[i-1] : null;
+								flags = containBlock(x, y, 15, mChunkNZ, mChunkPXNZ, mChunkNXNZ, allStorage[i], null,  null,  mChunkADJNY, world, chunkX, chunkZ);
+								if((flags & ADJ_WATER) != 0 && (flags & BLOCKADDED) != 0)
+									modified = true;
+							}
+
+							if(mChunkNY != null)	//then y was 0
+							{
+								flags = containBlock(x, 15, z, mChunkNY, null, null, null, null,  allStorage[i],  null, world, chunkX, chunkZ);
+								if((flags & ADJ_WATER) != 0 && (flags & BLOCKADDED) != 0)
+									modified = true;
+							}
+
+							if(mChunkPY != null)	//then y was 15
+							{
+								flags = containBlock(x, 0, z, mChunkPY, null, null, null, null,  null,  allStorage[i], world, chunkX, chunkZ);
 								if((flags & ADJ_WATER) != 0 && (flags & BLOCKADDED) != 0)
 									modified = true;
 							}
 
 
+							mChunkNXNZ = null;
+							mChunkNXPZ = null;
+							mChunkPXPZ = null;
+							mChunkPXNZ = null;
 
 							mChunkNZ = null;
 							mChunkPZ = null;
+							
 						}
 						mChunkNY = null;	//after it changes value, it will always become invalid
 						mChunkPY = null;
@@ -366,6 +494,8 @@ public class ContainFiniteFluid implements IWorldGenerator {
 				chunkPZ.setChunkModified();
 			if(chunkNZ != null)
 				chunkNZ.setChunkModified();
+
+//			System.out.println("Modified Chunk: "+chunkX+ ", "+chunkZ);
 		}
 	}
 }

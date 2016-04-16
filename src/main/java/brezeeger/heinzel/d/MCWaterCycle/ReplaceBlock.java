@@ -7,6 +7,7 @@ import net.minecraft.util.BlockPos;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import net.minecraftforge.event.terraingen.PopulateChunkEvent;
+import net.minecraft.block.BlockLiquid;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import brezeeger.heinzel.d.MCWaterCycle.MCWaterCycle;
 import net.minecraft.block.state.IBlockState;//withProperty;
@@ -25,6 +26,7 @@ public class ReplaceBlock implements IWorldGenerator {
 
 	Block srcBlock;
 	Block trgBlock;
+	
 
 	ReplaceBlock(Block src, Block trg)
 	{
@@ -59,10 +61,10 @@ public class ReplaceBlock implements IWorldGenerator {
 					}
 				}
 			}
-*/			
+		
 //			System.out.println("Replacing water in chunk: "+chunkX+", "+chunkZ);
-
-
+*/
+			//chunkGenerator should be what chunk is generating, and chunkProvider is what is requesting the generation
 			Chunk chunk = chunkProvider.provideChunk(chunkX, chunkZ);
 			boolean modified = false;
 			for (ExtendedBlockStorage storage : chunk.getBlockStorageArray()) 
@@ -75,7 +77,21 @@ public class ReplaceBlock implements IWorldGenerator {
 			            {
 							for (int z = 0; z < 16; ++z) 
 							{
-								if (storage.getBlockByExtId(x, y, z) == srcBlock) //replace all source blocks with full finite water
+								if(srcBlock == Blocks.water || srcBlock == Blocks.flowing_water)
+								{
+									if (storage.getBlockByExtId(x, y, z) == srcBlock) //replace all source blocks with full finite water
+									{
+										IBlockState state = storage.get(x,y,z);
+										int lvl = ((Integer)state.getValue(BlockLiquid.LEVEL)).intValue();	//0-15, 0=minimal, 8=full falling.
+										if(lvl==0)
+											storage.set(x, y, z,trgBlock.getDefaultState());
+										else
+											storage.set(x,y,z,Blocks.air.getDefaultState());
+
+										modified = true;
+									}
+								}
+								else if (storage.getBlockByExtId(x, y, z) == srcBlock) //replace all source blocks with full finite water
 								{
 									storage.set(x, y, z,trgBlock.getDefaultState());
 									modified = true;
@@ -87,7 +103,6 @@ public class ReplaceBlock implements IWorldGenerator {
 			}
 			if(modified)
 				chunk.setChunkModified(); 
-				
 				
 		}	//end it is the main world
 	}	//end generate function
