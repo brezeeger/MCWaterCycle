@@ -43,8 +43,9 @@ public class CommonProxy {
 		MCWaterCycle.watBucket = new WaterBucket(MCWaterCycle.flfinwater, "finite_water_bucket");
 
 //		MinecraftForge.EVENT_BUS.register(new ReplaceWater());	this is still REALLY slow
+		GameRegistry.registerWorldGenerator(new PreventFallingBlocks(), 100022);	//put sandstone/stone under sand/gravel. If next to water, this can cause massive draining/lag on chunk creation
 		GameRegistry.registerWorldGenerator(new ReplaceBlock(Blocks.water, MCWaterCycle.finiteWater), 100023);	//make this one of the last things done!
-		GameRegistry.registerWorldGenerator(new ReplaceBlock(Blocks.flowing_water, Blocks.air), 100024);	//get rid of any flowing water that might screw things up
+		GameRegistry.registerWorldGenerator(new ReplaceBlock(Blocks.flowing_water, Blocks.stone), 100024);	//get rid of any flowing water that might screw things up
 		GameRegistry.registerWorldGenerator(new ContainFiniteFluid(MCWaterCycle.finiteWater, MCWaterCycle.WetGrass), 100025);	//contain the finite fluid right after it has been made!
 		MinecraftForge.EVENT_BUS.register(MCWaterCycle.watBucket);	//need a bucket instance just to steal all bucket events
 		

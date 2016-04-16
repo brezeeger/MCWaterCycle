@@ -86,7 +86,7 @@ public class ReplaceBlock implements IWorldGenerator {
 										if(lvl==0)
 											storage.set(x, y, z,trgBlock.getDefaultState());
 										else
-											storage.set(x,y,z,Blocks.air.getDefaultState());
+											storage.set(x,y,z,Blocks.stone.getDefaultState());	//if air, water over falling water will not be caught!
 
 										modified = true;
 									}

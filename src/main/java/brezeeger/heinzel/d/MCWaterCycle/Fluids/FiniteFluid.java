@@ -807,6 +807,10 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 	@Override
 	public void updateTick(World world, BlockPos pos, IBlockState state, Random rand)
 	{
+
+		return;	//what does the world look like?!?
+		/*
+
 		//because it is an Override, we know the state
 		state = world.getBlockState(pos);	//make sure it's the correct state...
 		
@@ -1163,26 +1167,6 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 						}
 						numExtra = 0;
 					}
-/*
-					if(index != -1)
-					{
-						priority[index] = true;
-						numExtra--;
-					}
-					else //basically, everything sucks, so just fill them in
-					{
-						for(i=0; i<5; i++)
-						{
-							if(!change[i] || priority[i])
-								continue;
-
-							priority[i] = true;
-							numExtra--;
-							if(numExtra<=0)
-								break;
-						}
-					}
-*/
 				}
 				
 
@@ -1277,21 +1261,6 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 							}
 							numExtra -= tiectr;	//-4 - -2 = -2
 						}
-
-						/*
-						if(remove != -1)
-						{
-							priority[hpindices[remove]] = false;
-							hpindices[remove] = 5;
-						}
-						else
-						{
-//							System.out.println("Somehow removing priorities failing");
-							priority[0]=priority[1]=priority[2]=priority[3]=priority[4]=false;
-							numExtra=0;
-						}
-						numExtra++;
-			*/
 					}
 
 				}
@@ -1351,7 +1320,7 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 			//it finally attempts to evaporate
 			keepGoing=false;
 		}
-		
+		*/
 //		world.notifyNeighborsOfStateChange(pos, this);	//will only do this when water becomes a source block
 		
 	//Event.EntityEvent.LivingEvent.PlayerEvent.FillBucketEvent -- gotta interrupt water to make things work better!
