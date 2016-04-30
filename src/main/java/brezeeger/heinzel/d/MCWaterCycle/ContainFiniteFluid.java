@@ -221,8 +221,8 @@ public class ContainFiniteFluid implements IWorldGenerator {
 		}
 
 
-		if((flags & ADJ_WATER) != 0)	//it needs to update the blocks!
-		{
+//		if((flags & ADJ_WATER) != 0)	//it needs to update the blocks!
+//		{
 			if((flags & BLOCKNZ) != 0)
 			{
 				if(mchunkNZ != null)
@@ -301,7 +301,7 @@ public class ContainFiniteFluid implements IWorldGenerator {
 				
 //			}
 
-		}
+//		}
 
 		return(flags);
 	}
@@ -409,7 +409,7 @@ public class ContainFiniteFluid implements IWorldGenerator {
 
 							flags = containBlock(x, y, z, allStorage[i],  mChunkPX,  mChunkNX, mChunkPZ,  mChunkNZ,  mChunkPY,  mChunkNY, world, chunkX, chunkZ);
 
-							if((flags & ADJ_WATER) != 0 && (flags & BLOCKADDED) != 0)
+							if(/*(flags & ADJ_WATER) != 0 && */(flags & BLOCKADDED) != 0)
 								modified = true;
 
 							//if it's on one of the edges of the chunk, we need to check to see if this new interface will have put holes next to adjacent water that might drain
@@ -419,7 +419,7 @@ public class ContainFiniteFluid implements IWorldGenerator {
 								mChunkADJNY = (i>0) ? chunkPX.getBlockStorageArray()[i-1] : null;
 
 								flags = containBlock(0, y, z, mChunkPX,  null,  allStorage[i], mChunkPXPZ,  mChunkPXNZ,  null,  mChunkADJNY, world, chunkX, chunkZ);
-								if((flags & ADJ_WATER) != 0 && (flags & BLOCKADDED) != 0)
+								if(/*(flags & ADJ_WATER) != 0 && */(flags & BLOCKADDED) != 0)
 									modified = true;
 							}	
 
@@ -427,7 +427,7 @@ public class ContainFiniteFluid implements IWorldGenerator {
 							{
 								mChunkADJNY = (i>0) ? chunkNX.getBlockStorageArray()[i-1] : null;
 								flags = containBlock(15, y, z, mChunkNX, allStorage[i], null, mChunkNXPZ,  mChunkNXNZ,  null,  mChunkADJNY, world, chunkX, chunkZ);
-								if((flags & ADJ_WATER) != 0 && (flags & BLOCKADDED) != 0)
+								if(/*(flags & ADJ_WATER) != 0 && */(flags & BLOCKADDED) != 0)
 									modified = true;
 							}
 
@@ -435,7 +435,7 @@ public class ContainFiniteFluid implements IWorldGenerator {
 							{
 								mChunkADJNY = (i>0) ? chunkPZ.getBlockStorageArray()[i-1] : null;
 								flags = containBlock(x, y, 0, mChunkPZ,  mChunkPXPZ,  mChunkNXPZ,  null, allStorage[i], null,  mChunkADJNY, world, chunkX, chunkZ);
-								if((flags & ADJ_WATER) != 0 && (flags & BLOCKADDED) != 0)
+								if(/*(flags & ADJ_WATER) != 0 && */ (flags & BLOCKADDED) != 0)
 									modified = true;
 							}	
 
@@ -443,21 +443,21 @@ public class ContainFiniteFluid implements IWorldGenerator {
 							{
 								mChunkADJNY = (i>0) ? chunkNZ.getBlockStorageArray()[i-1] : null;
 								flags = containBlock(x, y, 15, mChunkNZ, mChunkPXNZ, mChunkNXNZ, allStorage[i], null,  null,  mChunkADJNY, world, chunkX, chunkZ);
-								if((flags & ADJ_WATER) != 0 && (flags & BLOCKADDED) != 0)
+								if(/*(flags & ADJ_WATER) != 0 && */(flags & BLOCKADDED) != 0)
 									modified = true;
 							}
 
 							if(mChunkNY != null)	//then y was 0
 							{
 								flags = containBlock(x, 15, z, mChunkNY, null, null, null, null,  allStorage[i],  null, world, chunkX, chunkZ);
-								if((flags & ADJ_WATER) != 0 && (flags & BLOCKADDED) != 0)
+								if(/*(flags & ADJ_WATER) != 0 && */(flags & BLOCKADDED) != 0)
 									modified = true;
 							}
 
 							if(mChunkPY != null)	//then y was 15
 							{
 								flags = containBlock(x, 0, z, mChunkPY, null, null, null, null,  null,  allStorage[i], world, chunkX, chunkZ);
-								if((flags & ADJ_WATER) != 0 && (flags & BLOCKADDED) != 0)
+								if(/*(flags & ADJ_WATER) != 0 && */(flags & BLOCKADDED) != 0)
 									modified = true;
 							}
 

@@ -84,7 +84,8 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 		if(capacity > 8 || capacity < 1)	//default to relatively standard behavior
 			capacity = 8;
 		this.capacity = capacity;
-		this.setLightOpacity(10);	//10	- if not ten, a light will pass through water and allow dirt to form into grass, which will then trigger water updates
+		this.setLightOpacity(3);	//3 is normal water opacity	- if not ten, a light will pass through water and allow dirt to form into grass, which will then trigger water updates
+//		System.out.println("Normal water opacity: "+Blocks.water.getLightOpacity());
 		this.displacements.put(Blocks.water, false);	//make sure it does not ever displace the water
 		this.displacements.put(Blocks.flowing_water, false);
 		stack = new FluidStack(flu, capacity * FluidContainerRegistry.BUCKET_VOLUME / 8);	//just for easy reference! (8 from 8 levels of water to render)
@@ -808,8 +809,8 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 	public void updateTick(World world, BlockPos pos, IBlockState state, Random rand)
 	{
 
-		return;	//what does the world look like?!?
-		/*
+//		return;	//what does the world look like?!?
+		
 
 		//because it is an Override, we know the state
 		state = world.getBlockState(pos);	//make sure it's the correct state...
@@ -1286,6 +1287,8 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 							else if(world.getBlockState(trgPos[i]).getBlock()==Blocks.water || world.getBlockState(trgPos[i]).getBlock()==Blocks.flowing_water)
 							{
 								world.setBlockState(trgPos[i], state.withProperty(LEVEL, newLvl), 2);	//change block type, but don't update tick
+//								System.out.println(world.getBlockState(trgPos[i]).getBlock().getUnlocalizedName() + " has state: "+((Integer)world.getBlockState(trgPos[i]).getValue(LEVEL)).intValue()+ " at (x,y,z) "
+//							+ trgPos[i].getX()+", "+trgPos[i].getY()+", "+trgPos[i].getZ());
 							}
 						}
 						else
@@ -1320,7 +1323,7 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 			//it finally attempts to evaporate
 			keepGoing=false;
 		}
-		*/
+		
 //		world.notifyNeighborsOfStateChange(pos, this);	//will only do this when water becomes a source block
 		
 	//Event.EntityEvent.LivingEvent.PlayerEvent.FillBucketEvent -- gotta interrupt water to make things work better!

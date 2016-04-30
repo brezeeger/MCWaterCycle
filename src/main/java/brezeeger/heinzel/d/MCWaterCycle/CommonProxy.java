@@ -21,6 +21,13 @@ import brezeeger.heinzel.d.MCWaterCycle.Fluids.FiniteFluid;
 import brezeeger.heinzel.d.MCWaterCycle.ReplaceBlock;
 import brezeeger.heinzel.d.MCWaterCycle.ContainFiniteFluid;
 
+/*
+import net.minecraftforge.fml.common.IWorldGenerator;
+import java.util.HashMap;
+import com.google.common.collect.Maps;
+import java.lang.reflect.Field;
+import java.util.Iterator;
+*/
 
 public class CommonProxy {
 
@@ -52,6 +59,37 @@ public class CommonProxy {
     }
 
     public void postInit(FMLPostInitializationEvent e) {
-
+		/*
+		try
+		{
+			Field fd = GameRegistry.class.getDeclaredField("worldGeneratorIndex");
+			fd.setAccessible(true);
+			HashMap<IWorldGenerator, Integer> container = new HashMap<IWorldGenerator, Integer>();
+			System.out.println("Container is of type: " +container.getClass().getName());
+			System.out.println("Field is of type: " + fd.getType());
+			Object themap = fd.get(container);
+			
+			System.out.println("themap has class type: "+themap.getClass().getName());
+			System.out.println("Loaded the map");
+			for(IWorldGenerator key: ((HashMap<IWorldGenerator, Integer>)themap).keySet())
+			{
+				System.out.println("In the for loop");
+				System.out.println("Class Name: " +key.getClass().getName()+" -- Weighting: "+((HashMap<IWorldGenerator, Integer>)themap).get(key));
+			}
+		}
+		 catch (Exception ex)
+		{
+			ex.printStackTrace();
+		}
+		Field[] fld = GameRegistry.class.getDeclaredFields();
+		for(Field fld1:fld)
+		{
+			fld1.setAccessible(true);
+			System.out.println("Field: "+fld1.getName());
+		}
+		*/
+//		System.out.println("Water Block Name: " + Blocks.water.getUnlocalizedName());
+//		System.out.println("FlowingWater Block Name: " + Blocks.flowing_water.getUnlocalizedName());
+		//private static Map<IWorldGenerator, Integer> worldGeneratorIndex = Maps.newHashMap();
     }
 }
