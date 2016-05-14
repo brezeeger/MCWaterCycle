@@ -1,6 +1,7 @@
 package brezeeger.heinzel.d.MCWaterCycle.Fluids;
 
 import java.util.Random;
+import java.util.Map;
 
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
@@ -98,6 +99,8 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 
 	//@Override
 	public String getName() { return(this.name); }
+
+	public Map<Block, Boolean> GetDisplacements() { return(this.displacements); }
 
 	@Override
 	public Fluid getFluid()
@@ -429,6 +432,33 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 //		else
 //			System.out.println("Attempted and failed to remove liquid from " + state.getBlock().getUnlocalizedName());
 		return amt;
+	}
+
+	//quicker displace test
+	public boolean canDisplace(Block blk)
+	{
+		Material mat = blk.getMaterial();
+		if(mat == Material.air)
+			return true;
+
+		
+		if(mat == Material.water ||
+            mat == Material.lava  ||
+            mat == Material.portal)
+			return false;
+
+		if(blk == this)
+			return false;
+
+		if (displacements.containsKey(blk))
+            return displacements.get(blk);
+
+//		if (mat.blocksMovement() || mat == Material.portal)
+ //           return false;
+
+		//cannot test density issues, but these probably don't really matter
+
+		return false;
 	}
 
 	public boolean canAcceptLiquid(World world, BlockPos pos)
