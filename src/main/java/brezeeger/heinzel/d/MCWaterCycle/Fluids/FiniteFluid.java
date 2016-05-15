@@ -236,6 +236,9 @@ public class FiniteFluid extends BlockFluidFinite implements IFluidBlock {
 			amt = -removeLiquid(world, pos, -amt);
 			return(amt);
 		}
+		if(isInfiniteSourceWater(world, pos))	//then it is also an infinite sink of water!
+			return(0);
+
 		if(canDisplace(world, pos.down()))
 			falling = true;
 

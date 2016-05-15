@@ -1,5 +1,26 @@
 {
+    "forge_marker": 1,
+    "defaults": {
+        "model": "MCWaterCycle:wetgrass",
+        "transform": "forge:default-item"
+    },
     "variants": {
-        "normal": { "model": "MCWaterCycle:wetgrass" }
+        "evaporate=true,level=0": { "model": "MCWaterCycle:wetgrass" },
+        "evaporate=true,level=1": { "model": "MCWaterCycle:wetgrass" },
+        "evaporate=true,level=2": { "model": "MCWaterCycle:wetgrass" },
+        "evaporate=true,level=3": { "model": "MCWaterCycle:wetgrass" },
+        "evaporate=true,level=4": { "model": "MCWaterCycle:wetgrass" },
+        "evaporate=true,level=5": { "model": "MCWaterCycle:wetgrass" },
+        "evaporate=true,level=6": { "model": "MCWaterCycle:wetgrass" },
+        "evaporate=true,level=7": { "model": "MCWaterCycle:wetgrass" },
+        "evaporate=false,level=0": { "model": "MCWaterCycle:wetgrass" },
+        "evaporate=false,level=1": { "model": "MCWaterCycle:wetgrass" },
+        "evaporate=false,level=2": { "model": "MCWaterCycle:wetgrass" },
+        "evaporate=false,level=3": { "model": "MCWaterCycle:wetgrass" },
+        "evaporate=false,level=4": { "model": "MCWaterCycle:wetgrass" },
+        "evaporate=false,level=5": { "model": "MCWaterCycle:wetgrass" },
+        "evaporate=false,level=6": { "model": "MCWaterCycle:wetgrass" },
+        "evaporate=false,level=7": { "model": "MCWaterCycle:wetgrass" }
     }
 }
+

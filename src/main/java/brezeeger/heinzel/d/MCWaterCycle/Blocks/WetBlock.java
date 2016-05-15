@@ -52,12 +52,39 @@ public class WetBlock extends Block {
 		this.SeepFactor = seep;
 		this.name = nme;
 		this.WaterPresent = 1;
-		
+		this.setDefaultState(this.blockState.getBaseState().withProperty(LEVEL, mx-1).withProperty(EVAPORATE, false));
+
 		setUnlocalizedName(nme);
 		setCreativeTab(CreativeTabs.tabBlock);	//make the block visible in creative mode
 		GameRegistry.registerBlock(this, this.name);	//add the block to the registry
 		GameRegistry.addSmelting(new ItemStack(this,1,1), new ItemStack(blkdead,1,1), 0.1F);	//let it be smelted to it's original value
 		GameRegistry.addShapelessRecipe(new ItemStack(this,1), new ItemStack(blkdead,1), new ItemStack(Items.water_bucket,1));	//note this consumes the bucket!
+
+	}
+
+	@Override
+	protected BlockState createBlockState() {
+		return new BlockState(this, new IProperty[] { LEVEL, EVAPORATE } );
+	}
+
+	@Override
+	public IBlockState getStateFromMeta(int meta)
+	{
+		return getDefaultState().withProperty(LEVEL, meta%8);
+	}
+
+	@Override
+	public int getMetaFromState(IBlockState state)
+	{
+		int i = ((Integer)state.getValue(LEVEL)).intValue();
+		if(((Boolean)state.getValue(EVAPORATE)).booleanValue() == true)
+			i+=8;
+		return(i);
+	}
+
+	@Override
+	public int damageDropped(IBlockState state) {
+		return getMetaFromState(state);
 	}
 
 	public String getName() { return name; }

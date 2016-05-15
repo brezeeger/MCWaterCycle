@@ -1,7 +1,7 @@
 {
     "parent": "block/cube_all",
-    "textures": { 
-        "all":  "MCWaterCycle:blocks/mud"
+    "textures": {
+        "all": "MCWaterCycle:blocks/mud"
     }
 
 }
